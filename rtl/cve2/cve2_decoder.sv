@@ -58,6 +58,10 @@ module cve2_decoder #(
   output logic                 rf_ren_a_o,          // Instruction reads from RF addr A
   output logic                 rf_ren_b_o,          // Instruction reads from RF addr B
 
+  // ===================================================================
+  output logic                 mac_en_o,          // MAC enable signal
+  // USER CODE END
+
   // ALU
   output cve2_pkg::alu_op_e    alu_operator_o,        // ALU operation selection
   output cve2_pkg::op_a_sel_e  alu_op_a_mux_sel_o,    // operand a selection: reg value, PC,
@@ -210,6 +214,8 @@ module cve2_decoder #(
     rf_ren_a_o            = 1'b0;
     rf_ren_b_o            = 1'b0;
 
+    //=====================USER CODE START===============================
+    mac_en_o              = 1'b0;
     csr_access_o          = 1'b0;
     csr_illegal           = 1'b0;
     csr_op                = CSR_OP_READ;
@@ -460,6 +466,19 @@ module cve2_decoder #(
             {7'b000_0000, 3'b101},
             {7'b010_0000, 3'b101}: illegal_insn = 1'b0;
 
+            // ===================================================================
+            {7'b100_0000, 3'b000}: begin // MAC
+              mac_en_o = 1'b1;  // read enable for rd
+              alu_operator_o = ALU_MAC;
+              
+              // MUL instruction
+              multdiv_operator_o    = MD_OP_MULL;
+              multdiv_signed_mode_o = 2'b00;
+              illegal_insn          = (RV32M == RV32MNone) ? 1'b1 : 1'b0;
+
+            end
+            //FINISH ADDED CODE ===================================================================
+
             // RV32B zba
             {7'b001_0000, 3'b010}, // sh1add
             {7'b001_0000, 3'b100}, // sh2add
@@ -545,6 +564,7 @@ module cve2_decoder #(
               multdiv_signed_mode_o = 2'b00;
               illegal_insn          = (RV32M == RV32MNone) ? 1'b1 : 1'b0;
             end
+            
             default: begin
               illegal_insn = 1'b1;
             end
@@ -975,6 +995,10 @@ module cve2_decoder #(
             {7'b000_0000, 3'b101}: alu_operator_o = ALU_SRL;   // Shift Right Logical
             {7'b010_0000, 3'b101}: alu_operator_o = ALU_SRA;   // Shift Right Arithmetic
 
+            //ADDED CODE//
+            {7'b100_0000, 3'b000}: alu_operator_o = ALU_MAC;   //MAC 
+            //FINISH ADDED CODE//
+            
             // RV32B ALU Operations
             {7'b011_0000, 3'b001}: begin
               if (RV32B != RV32BNone) begin

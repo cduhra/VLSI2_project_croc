@@ -16,7 +16,7 @@ module user_rom #(
   output obi_rsp_t obi_rsp_o
 );
 
-  localparam Addr_Size = 8;
+  localparam ADDR_SIZE = 5;
 
   // Registers to hold the request fields
   logic req_d, req_q, req_q2;
@@ -26,7 +26,7 @@ module user_rom #(
 
   // Response signals
   logic [ObiCfg.DataWidth-1:0] rsp_data;
-  logic rsp_err;
+  logic obi_err;
 
   // Register assignments
   assign req_d  = obi_req_i.req;
@@ -56,26 +56,29 @@ module user_rom #(
     end
   end
 
-  logic [Addr_Size-1:0] word_addr;
+  logic [2:0] word_addr;
   always_comb begin
     rsp_data = '0;
-    rsp_err  = '0;
-    word_addr = addr_q2[Addr_Size+1:2];
+    obi_err  = '0;
+    word_addr = addr_q2[4:2];
     if (req_q2) begin
       if (~we_q2) begin
-        case (word_addr[2:0]) // Use only lower 3 bits for up to 8 words
-          3'b000: rsp_data = 32'h49502E54; // T.PIG
-          3'b001: rsp_data = 32'h414E4749; // INGA
-          3'b010: rsp_data = 32'h2E43444E; // NDC.
-          3'b011: rsp_data = 32'h27415248; // HRA'
-          3'b100: rsp_data = 32'h53412073; // s AS
-          3'b101: rsp_data = 32'h00004349; // IC\0\0
-          3'b110: rsp_data = 32'h00000000;
-          3'b111: rsp_data = 32'h00000000;
-          default: rsp_data = 32'h0;
+        // Debug: show address and word_addr
+        $display("[user_rom] Read addr=0x%08x word_addr=%0d", addr_q2, word_addr);
+        case (word_addr) 
+          // T.PIGNIANDC.DUHRA's ASIC = 54 2E 50 49 47 4E 49 26 43 2E 44 55 68 52 41 27 73 20 41 53 49 43 in hex
+          'h0: rsp_data= 32'h49502E54; 
+          'h1: rsp_data= 32'h414E4749; 
+          'h2: rsp_data= 32'h2E43444E; 
+          'h3: rsp_data= 32'h27415248; 
+          'h4: rsp_data= 32'h53412073;
+          'h5: rsp_data= 32'h0a004349;
+          'h6: rsp_data= 32'h00000000;
+          'h7: rsp_data= 32'h00000000;
+          default: rsp_data= 32'h0;
         endcase
       end else begin
-        rsp_err = '1;
+        obi_err = '1;
       end
     end
   end
@@ -85,7 +88,7 @@ module user_rom #(
   assign obi_rsp_o.rvalid      = req_q2;
   assign obi_rsp_o.r.rdata     = rsp_data;
   assign obi_rsp_o.r.rid       = id_q2;
-  assign obi_rsp_o.r.err       = rsp_err;
+  assign obi_rsp_o.r.err       = obi_err;
   assign obi_rsp_o.r.r_optional = '0;
 
 endmodule

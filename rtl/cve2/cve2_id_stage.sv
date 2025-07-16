@@ -154,6 +154,16 @@ module cve2_id_stage #(
 
   import cve2_pkg::*;
 
+  // USER CODE BEGIN ================================================
+  // MAC SIGNALS
+  logic mac_en;
+  logic mac_en_2_cycles;
+  cve2_pkg::alu_op_e alu_operator_MAC;
+  logic rf_raddr_a_MUX;
+  logic rf_waddr_id_MUX;
+  logic result_ex_i_q;
+  // USER CODE END ==================================================
+  
   // Decoder/Controller, ID stage internal signals
   logic        illegal_insn_dec;
   logic        ebrk_insn;

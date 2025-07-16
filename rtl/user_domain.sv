@@ -13,12 +13,7 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
   input  logic      rst_ni,
   input  logic      testmode_i,
 
-  // QSPI - Flash
-  output  logic           flash_sck_o,
-  output  logic           flash_ce_n_o,
-  input   logic [3:0]     flash_din_i,
-  output  logic [3:0]     flash_dout_o,
-  output  logic [3:0]     flash_dout_en_o,
+
   
   input  sbr_obi_req_t user_sbr_obi_req_i, // User Sbr (rsp_o), Croc Mgr (req_i)
   output sbr_obi_rsp_t user_sbr_obi_rsp_o,
@@ -29,17 +24,6 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
   input  logic [      GpioCount-1:0] gpio_in_sync_i, // synchronized GPIO inputs
   output logic [NumExternalIrqs-1:0] interrupts_o // interrupts to core
 );
-
-  // -----------------
-  // Control Signals
-  // -----------------
-  logic                flash_HSEL;
-  logic [31:0]         flash_HADDR;
-  logic [1:0]          flash_HTRANS;
-  logic                flash_HWRITE;
-  logic                flash_HREADY;
-  logic                flash_HREADYOUT;
-  logic [31:0]         flash_HRDATA;
 
 
 
@@ -85,8 +69,6 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
   assign user_rom_obi_req              = all_user_sbr_obi_req[UserRom];
   assign all_user_sbr_obi_rsp[UserRom] = user_rom_obi_rsp;
 
-  assign user_flash_obi_req              = all_user_sbr_obi_req[UserFlash];
-  assign all_user_sbr_obi_rsp[UserFlash] = user_flash_obi_rsp;
 
   //-----------------------------------------------------------------------------------------------
   // Demultiplex to User Subordinates according to address map
