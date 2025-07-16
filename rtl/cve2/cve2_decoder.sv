@@ -190,7 +190,7 @@ module cve2_decoder #(
     csr_op_o = csr_op;
 
     // CSRRSI/CSRRCI must not write 0 to CSRs (uimm[4:0]=='0)
-    // CSRRS/CSRRC must not write from x0 to CSRs (rs1=='0)
+    // CSRRS/CSRRC must not write from x0 to CSRs (rs1=='0')
     if ((csr_op == CSR_OP_SET || csr_op == CSR_OP_CLEAR) &&
         instr_rs1 == '0) begin
       csr_op_o = CSR_OP_READ;
@@ -468,7 +468,7 @@ module cve2_decoder #(
 
             // ===================================================================
             {7'b100_0000, 3'b000}: begin // MAC
-              mac_en_o = 1'b1;  // read enable for rd
+              mac_en_o = 1'b1;  // enable accumulator read
               alu_operator_o = ALU_MAC;
               
               // MUL instruction

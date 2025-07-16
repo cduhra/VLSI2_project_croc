@@ -138,6 +138,10 @@ module cve2_id_stage #(
   output logic [31:0]               rf_wdata_id_o,
   output logic                      rf_we_id_o,
 
+  // Add a third read address for MAC accumulator
+  output logic [4:0]                rf_raddr_c_o,
+  input  logic [31:0]               rf_rdata_c_i,
+
   output  logic                     en_wb_o,
   output  logic                     instr_perf_count_id_o,
 
@@ -251,6 +255,24 @@ module cve2_id_stage #(
 
   logic [31:0] alu_operand_a;
   logic [31:0] alu_operand_b;
+
+  // MAC Control
+  // In your decoder, add logic to set rf_raddr_c_o to rd for MAC
+  always_comb begin
+    if (alu_operator == ALU_MAC) begin
+      rf_raddr_c_o = rf_waddr_id_o; // rd as accumulator
+    end else begin
+      rf_raddr_c_o = 5'b0;
+    end
+  end
+
+  always_comb begin
+    if (alu_operator == ALU_MAC) begin
+      imd_val_q[0] = rf_rdata_c_i; // accumulator value from rd
+    end else begin
+      imd_val_q[0] = '0;
+    end
+  end
 
   /////////////
   // LSU Mux //
@@ -814,5 +836,7 @@ module cve2_id_stage #(
   `ifdef CHECK_MISALIGNED
   `ASSERT(IbexMisalignedMemoryAccess, !lsu_addr_incr_req_i)
   `endif
+
+  
 
 endmodule

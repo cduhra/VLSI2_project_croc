@@ -1312,6 +1312,12 @@ module cve2_alu #(
     assign imd_val_we_o        = '{default: '0};
   end
 
+  // MAC result
+  logic [31:0] mac_result;
+  always_comb begin
+    mac_result = operand_a_i * operand_b_i + imd_val_q_i[0];
+  end
+
   ////////////////
   // Result mux //
   ////////////////
@@ -1380,6 +1386,7 @@ module cve2_alu #(
       ALU_BSET, ALU_BCLR,
       ALU_BINV, ALU_BEXT: result_o = singlebit_result;
 
+
       // General Reverse / Or-combine (RV32B)
       ALU_GREV, ALU_GORC: result_o = rev_result;
 
@@ -1389,6 +1396,9 @@ module cve2_alu #(
       // Carry-less Multiply Operations (RV32B)
       ALU_CLMUL, ALU_CLMULR,
       ALU_CLMULH: result_o = clmul_result;
+
+      // MAC Operation
+      ALU_MAC: result_o = mac_result;
 
       default: ;
     endcase

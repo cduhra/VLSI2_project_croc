@@ -48,6 +48,27 @@ module cve2_ex_block #(
   import cve2_pkg::*;
 
   logic [31:0] alu_result, multdiv_result;
+  logic [31:0] mac_result;
+
+  // MAC operation: Multiply-Accumulate
+  always_comb begin
+    mac_result = 32'b0;
+    if (alu_operator_i == cve2_pkg::ALU_MAC) begin
+      // MAC: alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0]
+      mac_result = alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0];
+    end
+  end
+
+  // Select result for output
+  always_comb begin
+    if (alu_operator_i == cve2_pkg::ALU_MAC) begin
+      result_ex_o = mac_result;
+    end else if (multdiv_sel) begin
+      result_ex_o = multdiv_result;
+    end else begin
+      result_ex_o = alu_result;
+    end
+  end
 
   logic [32:0] multdiv_alu_operand_b, multdiv_alu_operand_a;
   logic [33:0] alu_adder_result_ext;
@@ -77,8 +98,6 @@ module cve2_ex_block #(
   assign imd_val_we_o   = multdiv_sel ? multdiv_imd_val_we : alu_imd_val_we;
 
   assign alu_imd_val_q = '{imd_val_q_i[0][31:0], imd_val_q_i[1][31:0]};
-
-  assign result_ex_o  = multdiv_sel ? multdiv_result : alu_result;
 
   // branch handling
   assign branch_decision_o  = alu_cmp_result;
