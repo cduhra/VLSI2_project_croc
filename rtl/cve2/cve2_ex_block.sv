@@ -50,10 +50,29 @@ module cve2_ex_block #(
   logic [31:0] alu_result, multdiv_result;
   logic [31:0] mac_result;
 
+  // MAC controller signals
+  logic mac_en;
+  cve2_pkg::alu_op_e alu_operator_mac;
+  logic mac_en_2_cycles;
+
+  // MAC enable: set high for MAC instructions
+  assign mac_en = (alu_operator_i == cve2_pkg::ALU_MAC);
+
+  // Instantiate MAC controller
+  cve2_mac_controller mac_controller_i (
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .alu_operator_i(alu_operator_i),
+    .mac_en_i(mac_en),
+    .alu_operator_o(alu_operator_mac),
+    .mac_en_2_cycles_o(mac_en_2_cycles)
+  );
+
   // MAC operation: Multiply-Accumulate
   always_comb begin
     mac_result = 32'b0;
-    if (alu_operator_i == cve2_pkg::ALU_MAC) begin
+    // Use MAC controller's output to gate MAC operation
+    if (mac_en_2_cycles) begin
       // MAC: alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0]
       mac_result = alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0];
     end
@@ -61,7 +80,7 @@ module cve2_ex_block #(
 
   // Select result for output
   always_comb begin
-    if (alu_operator_i == cve2_pkg::ALU_MAC) begin
+    if (mac_en_2_cycles) begin
       result_ex_o = mac_result;
     end else if (multdiv_sel) begin
       result_ex_o = multdiv_result;
@@ -114,7 +133,7 @@ module cve2_ex_block #(
   cve2_alu #(
     .RV32B(RV32B)
   ) alu_i (
-    .operator_i         (alu_operator_i),
+    .operator_i         (mac_en_2_cycles ? alu_operator_mac : alu_operator_i),
     .operand_a_i        (alu_operand_a_i),
     .operand_b_i        (alu_operand_b_i),
     .instr_first_cycle_i(alu_instr_first_cycle_i),

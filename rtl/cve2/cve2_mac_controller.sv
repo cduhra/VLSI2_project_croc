@@ -56,22 +56,22 @@ module cve2_mac_controller (
         case (state_q)
             IDLE: begin
                 if (alu_operator_i == cve2_pkg::ALU_MAC && mac_en_i) begin
-                    state_d = MUL; // Net state is MUL
+                    state_d = MUL;
+                    alu_operator_d = cve2_pkg::ALU_CLMUL;
+                    mac_en_2_cycles_d = 1'b1; // Stall during MUL
                 end else begin
                     alu_operator_d = alu_operator_i;
                 end
             end
             MUL: begin
-                alu_operator_d = cve2_pkg::ALU_ADD; // Multiplication operation is done with ADD instruction
-                mac_en_2_cycles_d = 1'b0;
-
-                state_d = ADD; // Net state is ADD
+                alu_operator_d = cve2_pkg::ALU_ADD;
+                mac_en_2_cycles_d = 1'b1; // Stall during ADD
+                state_d = ADD;
             end
             ADD: begin
-                alu_operator_d = cve2_pkg::ALU_ADD;
-                mac_en_2_cycles_d = 1'b1; // Enable MAC for second cycles
-
-                state_d = IDLE; // Net state is IDLE
+                alu_operator_d = alu_operator_i;
+                mac_en_2_cycles_d = 1'b0;
+                state_d = IDLE;
             end
             default: begin
                 state_d = IDLE;

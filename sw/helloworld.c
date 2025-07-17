@@ -44,16 +44,18 @@ uint32_t isqrt(uint32_t n) {
     ( (0x40 << 25) | ((rs2) << 20) | ((rs1) << 15) | (0x0 << 12) | ((rd) << 7) | 0x33 )
 
 static inline int mac(int a, int b, int c) {
-    register int ra asm("a0") = a;
-    register int rb asm("a1") = b;
-    register int rc asm("a2") = c;
+    int result = c;
     asm volatile (
-        ".word %0"
-        :
-        : "i"(ENCODE_MAC(12, 10, 11))
+        "mv a0, %1\n"
+        "mv a1, %2\n"
+        "mv a2, %3\n"
+        ".word %4\n"
+        "mv %0, a2\n"
+        : "=r"(result)
+        : "r"(a), "r"(b), "r"(c), "i"(ENCODE_MAC(12, 10, 11))
         : "a0", "a1", "a2"
     );
-    return rc;
+    return result;
 }
 
 char receive_buff[16] = {0};
@@ -108,21 +110,21 @@ int main() {
     // printf("Tock\n");
     // uart_write_flush();
 
-    // // Userrom test
-    // printf("BEGIN User Rom Test\n");
-    // uart_write_flush();
+    // Userrom test
+    printf("BEGIN User Rom Test\n");
+    uart_write_flush();
 
-    // printf("The content of the ROM (interpreted as ASCII) is:\n");
-    // for(int i = 0; i < BYTES; i++) {
-    //     printf("%c", *reg8(USER_ROM_BASE_ADDR, i));
-    //     // uart_write_flush();
-        
-    // }
-    // printf("\n");
-    // uart_write_flush();
+    printf("The content of the ROM (interpreted as ASCII) is:\n");
+    for(int i = 0; i < BYTES; i++) {
+        char c = *reg8(USER_ROM_BASE_ADDR, i);
+        if (c == '\0') break;
+        printf("%c", c);
+    }
+   
+    uart_write_flush();
 
-    // printf("END User Rom Test\n");
-    // uart_write_flush();
+    printf("END User Rom Test\n");
+    uart_write_flush();
 
     // MAC Test
     printf("BEGIN MAC Test\n");
@@ -131,9 +133,11 @@ int main() {
     // Test the MAC instruction
     int a = 7, b = 6, c = 5;
     int expected = a * b + c;
+    uint32_t start = get_mcycle();
     int result = mac(a, b, c);
-
-    printf("MAC test: %d * %d + %d = %d (expected %d)\n", a, b, c, result, expected);
+    uint32_t end = get_mcycle();
+    printf("MAC test: %x * %x + %x = %x (expected %x)\n", a, b, c, result, expected);
+    printf("Cycles: 0x%x\n", end - start);
     uart_write_flush();
 
     if (result == expected) {

@@ -67,14 +67,13 @@ module user_rom #(
         $display("[user_rom] Read addr=0x%08x word_addr=%0d", addr_q2, word_addr);
         case (word_addr) 
           // T.PIGNIANDC.DUHRA's ASIC = 54 2E 50 49 47 4E 49 26 43 2E 44 55 68 52 41 27 73 20 41 53 49 43 in hex
-          'h0: rsp_data= 32'h49502E54; 
-          'h1: rsp_data= 32'h414E4749; 
-          'h2: rsp_data= 32'h2E43444E; 
-          'h3: rsp_data= 32'h27415248; 
-          'h4: rsp_data= 32'h53412073;
-          'h5: rsp_data= 32'h0a004349;
-          'h6: rsp_data= 32'h00000000;
-          'h7: rsp_data= 32'h00000000;
+          'h0: rsp_data= 32'h49502E54; // "T.PI"
+          'h1: rsp_data= 32'h41494E47; // "GNIA"
+          'h2: rsp_data= 32'h2E43444E; // "NDC."
+          'h3: rsp_data= 32'h52485544; // "DUHRA'"
+          'h4: rsp_data= 32'h20732741; // "s AS"
+          'h5: rsp_data= 32'h43495341; // "IC "
+          'h6: rsp_data= 32'h0000000A; // "IC\0"
           default: rsp_data= 32'h0;
         endcase
       end else begin
