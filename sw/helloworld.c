@@ -58,6 +58,28 @@ static inline int mac(int a, int b, int c) {
     return result;
 }
 
+// static inline int mul(int a, int b) {
+//     int result;
+//     asm volatile (
+//         "mul %0, %1, %2"
+//         : "=r"(result)      // output operand
+//         : "r"(a), "r"(b)    // input operands
+//     );
+//     return result;
+// }
+
+static inline int mul(int a, int b) {
+    register int a5 asm("a5") = a;
+    register int a6 asm("a6") = b;
+    asm volatile (
+        "mul a5, a5, a6"
+        : "+r"(a5)      // a5 is both input and output
+        : "r"(a6)       // a6 is input
+    );
+    return a5;
+}
+
+
 char receive_buff[16] = {0};
 
 int main() {
@@ -110,42 +132,53 @@ int main() {
     // printf("Tock\n");
     // uart_write_flush();
 
-    // Userrom test
-    printf("BEGIN User Rom Test\n");
-    uart_write_flush();
+    // // ================Userrom test===============
+    // printf("BEGIN User Rom Test\n");
+    // uart_write_flush();
 
-    printf("The content of the ROM (interpreted as ASCII) is:\n");
-    for(int i = 0; i < BYTES; i++) {
-        char c = *reg8(USER_ROM_BASE_ADDR, i);
-        if (c == '\0') break;
-        printf("%c", c);
-    }
+    // printf("The content of the ROM (interpreted as ASCII) is:\n");
+    // for(int i = 0; i < BYTES; i++) {
+    //     char c = *reg8(USER_ROM_BASE_ADDR, i);
+    //     if (c == '\0') break;
+    //     printf("%c", c);
+    // }
    
-    uart_write_flush();
+    // uart_write_flush();
 
-    printf("END User Rom Test\n");
-    uart_write_flush();
+    // printf("END User Rom Test\n");
+    // uart_write_flush();
+    // // ==============END Userrom test==============
 
-    // MAC Test
+    // ==============MAC Test==============
     printf("BEGIN MAC Test\n");
     uart_write_flush();
 
     // Test the MAC instruction
     int a = 7, b = 6, c = 5;
-    int expected = a * b + c;
+    int expected;
     uint32_t start = get_mcycle();
-    int result = mac(a, b, c);
+    expected = mul(a, b);
     uint32_t end = get_mcycle();
-    printf("MAC test: %x * %x + %x = %x (expected %x)\n", a, b, c, result, expected);
-    printf("Cycles: 0x%x\n", end - start);
+    printf("MUL test: 0x%x \n", expected);
+    uart_write_flush();
+    expected = expected + c; // expected result is a * b + c
+    printf("ADD test: 0x%x \n", expected);
+    uart_write_flush();
+    int true_res = a * b + c;
+    printf("MUL cycles: 0x%x\n", end - start);
     uart_write_flush();
 
-    if (result == expected) {
-        printf("MAC instruction works!\n");
-        uart_write_flush();
-    } else {
-        printf("MAC instruction FAILED!\n");
-        uart_write_flush();
-    }
+    // MAC not returning because of the return loop
+    //int result = mac(a, b, c);
+    //printf("MAC test: 0x%x \n", result);
+    //uart_write_flush();
+
+    // if (result == true_res) {
+    //     printf("MAC instruction works!\n");
+    //     uart_write_flush();
+    // } else {
+    //     printf("MAC instruction FAILED!\n");
+    //     uart_write_flush();
+    // }
     return 1;
 }

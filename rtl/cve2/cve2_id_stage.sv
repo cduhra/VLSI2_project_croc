@@ -663,6 +663,7 @@ module cve2_id_stage #(
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
 
+    // ====== USERD CODE ==========================
     stall_mac = (alu_operator == ALU_MAC) && mac_en_2_cycles;
     if (instr_executing_spec) begin
       unique case (id_fsm_q)
@@ -732,6 +733,10 @@ module cve2_id_stage #(
         end
       endcase
     end
+  end
+
+  always @(multdiv_en_dec) begin
+    $display("[id_stage] multdiv_en_dec is: %0d", multdiv_en_dec);
   end
 
   `ASSERT(StallIDIfMulticycle, (id_fsm_q == FIRST_CYCLE) & (id_fsm_d == MULTI_CYCLE) |-> stall_id)

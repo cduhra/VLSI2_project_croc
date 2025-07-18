@@ -12,7 +12,8 @@ INCDIR  ?= lib/inc
 # Toolchain
 
 RISCV_XLEN    ?= 32
-RISCV_MARCH   ?= rv$(RISCV_XLEN)i_zicsr
+# Added support for multiplication instructions ORI: v$(RISCV_XLEN)i_zicsr
+RISCV_MARCH   ?= rv$(RISCV_XLEN)im_zicsr
 RISCV_MABI    ?= ilp32
 RISCV_PREFIX  ?= riscv64-unknown-elf-
 RISCV_CC      ?= $(RISCV_PREFIX)gcc

@@ -210,6 +210,10 @@ module cve2_ex_block #(
     assign multdiv_valid         = '0;
   end
 
+  always @(multdiv_valid) begin
+    $display("[ex_stage] multdiv_valid is: %0d", multdiv_valid);
+  end
+
   // Multiplier/divider may require multiple cycles. The ALU output is valid in the same cycle
   // unless the intermediate result register is being written (which indicates this isn't the
   // final cycle of ALU operation).

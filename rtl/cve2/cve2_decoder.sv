@@ -214,7 +214,7 @@ module cve2_decoder #(
     rf_ren_a_o            = 1'b0;
     rf_ren_b_o            = 1'b0;
 
-    //=====================USER CODE START===============================
+    //=====================USER CODE RT===============================
     mac_en_o              = 1'b0;
     csr_access_o          = 1'b0;
     csr_illegal           = 1'b0;
@@ -525,6 +525,7 @@ module cve2_decoder #(
 
             // RV32M instructions
             {7'b000_0001, 3'b000}: begin // mul
+              $display("[decoder] Entered MUL instruction");
               multdiv_operator_o    = MD_OP_MULL;
               multdiv_signed_mode_o = 2'b00;
               illegal_insn          = (RV32M == RV32MNone) ? 1'b1 : 1'b0;

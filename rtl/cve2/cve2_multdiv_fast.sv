@@ -129,6 +129,12 @@ module cve2_multdiv_fast #(
   assign signed_mult      = (signed_mode_i != 2'b00);
   assign multdiv_result_o = div_sel_i ? imd_val_q_i[0][31:0] : mac_res_d[31:0];
 
+  always @(multdiv_result_o) begin
+    //$display("[multidiv_fast] results from multidivFast is: %0d", multdiv_result_o);
+  end
+
+
+
   // The single cycle multiplier uses three 17 bit multipliers to compute MUL instructions in a
   // single cycle and MULH instructions in two cycles.
   if (RV32M == RV32MSingleCycle) begin : gen_mult_single_cycle
@@ -516,6 +522,10 @@ module cve2_multdiv_fast #(
   end
 
   assign valid_o = mult_valid | div_valid;
+  
+  always @(valid_o) begin
+    $display("[multidiv_fast] valid_o is: %0d", valid_o);
+  end
 
   // States must be knwon/valid.
   `ASSERT(IbexMultDivStateValid, md_state_q inside {

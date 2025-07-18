@@ -64,7 +64,7 @@ module user_rom #(
     if (req_q2) begin
       if (~we_q2) begin
         // Debug: show address and word_addr
-        $display("[user_rom] Read addr=0x%08x word_addr=%0d", addr_q2, word_addr);
+        //$display("[user_rom] Read addr=0x%08x word_addr=%0d", addr_q2, word_addr);
         case (word_addr) 
           // T.PIGNIANDC.DUHRA's ASIC = 54 2E 50 49 47 4E 49 26 43 2E 44 55 68 52 41 27 73 20 41 53 49 43 in hex
           'h0: rsp_data= 32'h49502E54; // "T.PI"
