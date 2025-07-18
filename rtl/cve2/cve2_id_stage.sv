@@ -461,19 +461,6 @@ module cve2_id_stage #(
     end
   end
   
-  // After assign alu_operand_b_ex_o = alu_operand_b;
-  always_comb begin
-    if (alu_operator == ALU_MAC && !instr_first_cycle) begin
-      //alu_operand_a_ex_o = rf_rdata_a_fwd; // Use the value from register file (rd)
-      //alu_operand_b_ex_o = imd_val_q[0][31:0];
-      $display("[MAC ID] Accumulate cycle: Accumulator (alu_operand_a): 0x%h, Multiplier result (imd_val_q[0]): 0x%h",
-              alu_operand_a_ex_o, alu_operand_b_ex_o);
-    end else begin
-      // $display("[MAC ID] Multiply cycle: rs1=0x%h, rs2=0x%h", alu_operand_a, alu_operand_b);
-      //alu_operand_a_ex_o = alu_operand_a;
-      //alu_operand_b_ex_o = alu_operand_b;
-    end
-  end
   // ====================================================
 
 
@@ -849,7 +836,25 @@ module cve2_id_stage #(
 
     // No data forwarding without writeback stage so always take source register data direct from
     // register file
-    assign rf_rdata_a_fwd = rf_rdata_a_i;
+    // Forward write data if last cycle wrote to the same register being read
+    // assign rf_rdata_a_fwd = rf_rdata_a_i;
+    logic [4:0]  last_rf_waddr;
+    logic [31:0] last_rf_wdata;
+    logic        last_rf_we;
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        last_rf_waddr <= '0;
+        last_rf_wdata <= '0;
+        last_rf_we    <= 1'b0;
+      end else begin
+        last_rf_waddr <= rf_waddr_id_o;
+        last_rf_wdata <= rf_wdata_id_o;
+        last_rf_we    <= rf_we_id_o;
+      end
+    end
+
+    assign rf_rdata_a_fwd = ((last_rf_we && (last_rf_waddr == rf_raddr_a_o) && (rf_raddr_a_o != 0)) ? last_rf_wdata : rf_rdata_a_i);
     assign rf_rdata_b_fwd = rf_rdata_b_i;
 
     // Unused Writeback stage only IO & wiring
