@@ -471,10 +471,14 @@ module cve2_decoder #(
               $display("[decoder] MAC instruction decoded: rd=%0d rs1=%0d rs2=%0d PC=0x%h", instr_rd, instr_rs1, instr_rs2, instr[31:0]);
               mac_en_o = 1'b1;  // enable accumulator read
               alu_operator_o = ALU_MAC;
-              // alu_multicycle_o = 1'b1;  
-              // // MUL instruction
-              // multdiv_operator_o    = MD_OP_MULL;
-              // multdiv_signed_mode_o = 2'b00;
+              mult_en_o = 1'b1; // enable multiplication
+              // To test theory of Is it because of how the mac instruction is only telling the alu block it is activated not the multidivfast part
+              // multdiv_operator_o = MD_OP_MULL; // MAC uses multiplication
+              // mult_sel_o = 1'b1; // select multiplication result  
+              // rf_ren_a_o = 1'b1; // read rs1
+              // rf_ren_b_o = 1'b1; // read rs2
+              // rf_waddr_o = instr_rd; // write to rd
+              // rf_we_o = 1'b1; // write to rd
               illegal_insn          = (RV32M == RV32MNone) ? 1'b1 : 1'b0;
 
             end

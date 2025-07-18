@@ -33,12 +33,16 @@ module cve2_mac_controller (
 
     // Inputs
     input  cve2_pkg::alu_op_e       alu_operator_i,
+    input  cve2_pkg::md_op_e        mac_md_operator_i, // Multiplier operator for MAC
     input  logic                    mac_en_i,   // MAC enable
+    input  logic                    valid_ex_i, // EX stage has valid output
 
     // Outputs
     output cve2_pkg::alu_op_e       alu_operator_o, // Output ALU operator
     output logic                    mac_en_2_cycles_o, // MAC enable for 2 cycles
-    output logic                    mac_mul_en_o // Add this to the port list
+    output logic                    mac_mul_en_o,      // Add this to the port list
+    output cve2_pkg::md_op_e        mac_md_operator_o,   // Multiplier operator for MAC
+    output logic                    mac_mul_en_comb_o  // Combinational output for MAC multiplier enable
 );
     // In idle mode the signal must be transparent
     typedef enum logic [1:0] {IDLE, MUL, ADD} mac_state_e;
@@ -47,38 +51,58 @@ module cve2_mac_controller (
     // Output registers
     cve2_pkg::alu_op_e alu_operator_d, alu_operator_q;
     logic mac_en_2_cycles_d, mac_en_2_cycles_q;
+    logic mac_mul_en_d, mac_mul_en_q;
+    cve2_pkg::md_op_e mac_md_operator_d, mac_md_operator_q;
 
     // State transition logic
     always_comb begin
         state_d = state_q;
         alu_operator_d = alu_operator_q;
         mac_en_2_cycles_d = 1'b0;
-        mac_mul_en_o = 1'b0; // Default
+        mac_mul_en_o = mac_mul_en_q;
+        mac_mul_en_comb_o = mac_mul_en_d;
+        mac_md_operator_d = mac_md_operator_q;
 
         case (state_q)
             IDLE: begin
                 if (alu_operator_i == cve2_pkg::ALU_MAC && mac_en_i) begin
                     state_d = MUL;
-                    mac_mul_en_o = 1'b1; // Enable multiplier for MAC
+                    mac_mul_en_d = 1'b1; // Enable multiplier
+                    mac_md_operator_d = cve2_pkg::MD_OP_MULL; // Set multiplier op
+                    alu_operator_d = cve2_pkg::ALU_ADD; // ALU always does ADD for MAC
                     mac_en_2_cycles_d = 1'b1;
                 end else begin
+                    mac_en_2_cycles_d = 1'b0;
                     alu_operator_d = alu_operator_i;
+                    mac_md_operator_d = mac_md_operator_i;
+                    mac_mul_en_d = 1'b0;
                 end
             end
             MUL: begin
-                alu_operator_d = cve2_pkg::ALU_ADD;
                 mac_en_2_cycles_d = 1'b1;
-                state_d = ADD;
+                if (valid_ex_i) begin
+                    state_d = ADD;
+                    mac_mul_en_d = 1'b0; // Disable multiplier
+                    alu_operator_d = cve2_pkg::ALU_ADD;
+                end else begin
+                    mac_mul_en_d = 1'b1;
+                    alu_operator_d = cve2_pkg::ALU_ADD;
+                end
+                mac_md_operator_d = cve2_pkg::MD_OP_MULL;
             end
             ADD: begin
-                alu_operator_d = alu_operator_i;
-                mac_en_2_cycles_d = 1'b0;
+                alu_operator_d = cve2_pkg::ALU_ADD;
+                mac_en_2_cycles_d = 1'b1;
                 state_d = IDLE;
+                mac_mul_en_d = 1'b0;
+                mac_md_operator_d = mac_md_operator_i;
             end
             default: begin
                 state_d = IDLE;
                 alu_operator_d = alu_operator_i;
                 mac_en_2_cycles_d = 1'b0;
+                mac_mul_en_d = 1'b0;
+                mac_md_operator_d = mac_md_operator_i;
             end
         endcase
     end
@@ -89,15 +113,26 @@ module cve2_mac_controller (
             state_q <= IDLE;
             alu_operator_q <= alu_operator_i;
             mac_en_2_cycles_q <= 1'b0;
+            mac_mul_en_q <= 1'b0;
+            mac_md_operator_q <= mac_md_operator_i;
         end else begin
             state_q <= state_d;
             alu_operator_q <= alu_operator_d;
             mac_en_2_cycles_q <= mac_en_2_cycles_d;
+            mac_mul_en_q <= mac_mul_en_d;
+            mac_md_operator_q <= mac_md_operator_d;
         end
     end
 
-    // Outputs
     assign alu_operator_o = alu_operator_q;
     assign mac_en_2_cycles_o = mac_en_2_cycles_q;
+    assign mac_mul_en_o = mac_mul_en_q;
+    assign mac_md_operator_o = mac_md_operator_q;
+    always_ff @(posedge clk_i) begin
+        if (mac_en_i && alu_operator_i == cve2_pkg::ALU_MAC)
+            $display("[MAC CTRL] MAC detected: state_q=%0d mac_mul_en_d=%b", state_q, mac_mul_en_d);
+        if (mac_mul_en_o)
+            $display("[MAC CTRL] mac_mul_en_o asserted: state_q=%0d", state_q);
+    end
     
 endmodule

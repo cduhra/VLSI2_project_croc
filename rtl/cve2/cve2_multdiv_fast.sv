@@ -533,8 +533,10 @@ module cve2_multdiv_fast #(
 
   assign valid_o = mult_valid | div_valid;
   
-  always @(valid_o) begin
-    $display("[multidiv_fast] valid_o is: %0d", valid_o);
+  always_ff @(posedge clk_i) begin
+    if (mult_en_internal) begin
+      $display("[MULTDIV_FAST] MAC mult_en_i=%b operator_i=%0d op_a_i=0x%h op_b_i=0x%h mac_res_d=0x%h imd_val_we_o[0]=0x%h", mult_en_i, operator_i, op_a_i, op_b_i, mac_res_d, imd_val_we_o[0]);
+    end
   end
 
   // States must be knwon/valid.

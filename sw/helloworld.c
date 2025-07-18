@@ -44,15 +44,15 @@ uint32_t isqrt(uint32_t n) {
     ( (0x40 << 25) | ((rs2) << 20) | ((rs1) << 15) | (0x0 << 12) | ((rd) << 7) | 0x33 )
 
 static inline int mac(int a, int b, int c) {
-    int result = c; // accumulator in result/rd
+    int result;
     asm volatile (
         "mv a0, %1\n"      // a
         "mv a1, %2\n"      // b
-        "mv a2, %0\n"      // accumulator in a2 (rd)
-        ".word %3\n"       // MAC instruction: rd=a2, rs1=a0, rs2=a1
+        "mv a2, %3\n"      // accumulator in a2 (rd)
+        ".word %4\n"       // MAC instruction: rd=a2, rs1=a0, rs2=a1
         "mv %0, a2\n"      // move result back to C variable
-        : "+r"(result)
-        : "r"(a), "r"(b), "i"(ENCODE_MAC(12, 10, 11))
+        : "=r"(result)
+        : "r"(a), "r"(b), "r"(c), "i"(ENCODE_MAC(12, 10, 11))
         : "a0", "a1", "a2"
     );
     return result;
@@ -171,6 +171,8 @@ int main() {
 
     // MAC not returning because of the return loop
     uint32_t start_mac = get_mcycle();
+    asm volatile ("mv a2, %0" :: "r"(c));
+    asm volatile ("nop; nop; nop; nop; nop;");
     int result = mac(a, b, c);
     printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
     uint32_t end_mac = get_mcycle();

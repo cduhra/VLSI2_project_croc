@@ -155,6 +155,17 @@ module cve2_id_stage #(
 );
 
   import cve2_pkg::*;
+  // ==========================================================
+  // MAC SIGNALS
+  logic                             mac_en;
+  logic                             mac_en_2_cycles;
+  cve2_pkg::alu_op_e                alu_operator_MAC;
+  cve2_pkg::md_op_e                 md_operator_MAC;
+  logic                             rf_raddr_a_MUX;
+  logic                             rf_waddr_id_MUX;
+  logic                             result_ex_i_q;
+  logic                             mac_mul_en_o;   
+  // ==========================================================
 
   // Decoder/Controller, ID stage internal signals
   logic        illegal_insn_dec;
@@ -244,9 +255,6 @@ module cve2_id_stage #(
   logic [31:0] alu_operand_a;
   logic [31:0] alu_operand_b;
 
-  // USER CODE START
-  logic mac_en;
-  // USER CODE END
 
   /////////////
   // LSU Mux //
@@ -335,21 +343,6 @@ module cve2_id_stage #(
     endcase
   end
 
-  // USER CODE START
-  // After assign alu_operand_b_ex_o = alu_operand_b;
-  always_comb begin
-  if (alu_operator == ALU_MAC && !instr_first_cycle) begin
-    alu_operand_a_ex_o = rf_rdata_a_fwd; // Use the value from register file (rd)
-    alu_operand_b_ex_o = imd_val_q[0][31:0];
-    $display("[MAC ID] Accumulate cycle: Accumulator (alu_operand_a): 0x%h, Multiplier result (imd_val_q[0]): 0x%h",
-             alu_operand_a_ex_o, alu_operand_b_ex_o);
-  end else begin
-    // $display("[MAC ID] Multiply cycle: rs1=0x%h, rs2=0x%h", alu_operand_a, alu_operand_b);
-    alu_operand_a_ex_o = alu_operand_a;
-    alu_operand_b_ex_o = alu_operand_b;
-  end
-  end
-  // USER CODE END
   /////////////
   // Decoder //
   /////////////
@@ -429,6 +422,62 @@ module cve2_id_stage #(
     .jump_in_dec_o  (jump_in_dec),
     .branch_in_dec_o(branch_in_dec)
   );
+
+  always_ff @(posedge clk_i) begin
+    if (mac_en) begin
+      $display("[ID] MAC signals: mac_en=%b mac_mul_en_o=%b mult_en_ex_o=%b", mac_en, mac_mul_en_o, mult_en_ex_o);
+    end
+  end
+
+  // ====================================================
+  ////////////////////
+  // MAC controller //
+  ////////////////////
+  cve2_mac_controller mac__controller_i (
+    .clk_i (clk_i),
+    .rst_ni (rst_ni),
+    .alu_operator_i (alu_operator),
+    .mac_md_operator_i (multdiv_operator),
+    .mac_en_i (mac_en), //Gating with instr_executing to ensure MAC is only active when instruction is executing
+    .alu_operator_o (alu_operator_MAC),
+    .mac_md_operator_o (md_operator_MAC),
+    .valid_ex_i (ex_valid_i),
+    .mac_en_2_cycles_o (mac_en_2_cycles),
+    .mac_mul_en_o (mac_mul_en_o),
+    .mac_mul_en_comb_o (mac_mul_en_comb_o)
+  );
+
+  always_ff @(posedge clk_i) begin
+    // $display("[ID] MAC controller: mac_mul_en_o=%b alu_operator_MAC=%0d md_operator_MAC=%0d mac_en_2_cycles=%b",
+    //       mac_mul_en_o, alu_operator_MAC, md_operator_MAC, mac_en_2_cycles);
+  end
+  
+  // FlipFlop for backpropagation of the result_ex_i signal
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      result_ex_i_q <= 1'b0;
+    end else begin
+      result_ex_i_q <= result_ex_i;
+    end
+  end
+  
+  // After assign alu_operand_b_ex_o = alu_operand_b;
+  always_comb begin
+    if (alu_operator == ALU_MAC && !instr_first_cycle) begin
+      //alu_operand_a_ex_o = rf_rdata_a_fwd; // Use the value from register file (rd)
+      //alu_operand_b_ex_o = imd_val_q[0][31:0];
+      $display("[MAC ID] Accumulate cycle: Accumulator (alu_operand_a): 0x%h, Multiplier result (imd_val_q[0]): 0x%h",
+              alu_operand_a_ex_o, alu_operand_b_ex_o);
+    end else begin
+      // $display("[MAC ID] Multiply cycle: rs1=0x%h, rs2=0x%h", alu_operand_a, alu_operand_b);
+      //alu_operand_a_ex_o = alu_operand_a;
+      //alu_operand_b_ex_o = alu_operand_b;
+    end
+  end
+  // ====================================================
+
+
+
 
   /////////////////////////////////
   // CSR-related pipeline flushes //
@@ -547,6 +596,24 @@ module cve2_id_stage #(
     .perf_jump_o   (perf_jump_o),
     .perf_tbranch_o(perf_tbranch_o)
   );
+ 
+  
+
+  // Trace alu_operand_b_ex_o assignment
+  always_ff @(posedge clk_i) begin
+    if (mac_en) begin
+      $display("[ID] MAC signals: mac_en=%b alu_operator=%0d mult_en=%b multdiv_operator=%0d mult_sel=%b instr_executing=%b ex_valid_i=%b",
+        mac_en, alu_operator, mult_en_dec, multdiv_operator, mult_sel_ex_o, instr_executing, ex_valid_i);
+    end
+  end
+
+  always_comb begin
+    if (mac_en_2_cycles) begin
+      $display("[ID STAGE] MAC accumulate: alu_operand_b_ex_o = result_ex_i_q = 0x%h, rf_raddr_a_o = rf_waddr_id_MUX = %0d imd_val_q[0]=0x%h alu_operand_b_ex_o=0x%h rd(regfile)=0x%h",
+        result_ex_i_q, rf_waddr_id_MUX, imd_val_q[0], alu_operand_b_ex_o, rf_rdata_a_fwd);
+    end
+  end
+  // ====================================================
 
   assign multdiv_en_dec   = mult_en_dec | div_en_dec;
 
@@ -565,14 +632,21 @@ module cve2_id_stage #(
   // asserting it for an illegal csr access would result in a flush that would need to deassert it).
   assign csr_op_en_o             = csr_access_o & instr_executing & instr_id_done_o;
 
-  assign alu_operator_ex_o           = alu_operator;
+  // ====================================================
+  assign alu_operator_ex_o           = mac_en ? alu_operator_MAC : alu_operator;
+  // ====================================================
+  
+  // ===========================
   assign alu_operand_a_ex_o          = alu_operand_a;
-  assign alu_operand_b_ex_o          = alu_operand_b;
+  assign alu_operand_b_ex_o = mac_en_2_cycles ? imd_val_q[0] : alu_operand_b;
+  assign rf_raddr_a_o = mac_en_2_cycles ? rf_waddr_id_MUX : rf_raddr_a_MUX;
 
-  assign mult_en_ex_o                = mult_en_id;
+  assign mult_en_ex_o      = (mac_en && mac_mul_en_comb_o) ? 1'b1 : mult_en_id;
   assign div_en_ex_o                 = div_en_id;
 
-  assign multdiv_operator_ex_o       = multdiv_operator;
+  // ====================================================
+  assign multdiv_operator_ex_o = (mac_en && mac_mul_en_comb_o) ? md_operator_MAC : multdiv_operator;
+  // ====================================================
   assign multdiv_signed_mode_ex_o    = multdiv_signed_mode;
   assign multdiv_operand_a_ex_o      = rf_rdata_a_fwd;
   assign multdiv_operand_b_ex_o      = rf_rdata_b_fwd;
@@ -670,6 +744,13 @@ module cve2_id_stage #(
                 stall_multdiv = 1'b1;
               end
             end
+            (alu_operator == ALU_MAC): begin
+            if (~ex_valid_i) begin
+              id_fsm_d      = MULTI_CYCLE;
+              rf_we_raw     = 1'b0;
+              stall_multdiv = 1'b1;
+            end
+            end
             branch_in_dec: begin
               // $display("[ID FSM] Branch operation, branch_decision_i=%b", branch_decision_i);
               id_fsm_d         = (branch_decision_i) ? MULTI_CYCLE : FIRST_CYCLE;
@@ -696,11 +777,15 @@ module cve2_id_stage #(
         end
 
         MULTI_CYCLE: begin
-          // For MAC, retire after one accumulate cycle
-          if (alu_operator == ALU_MAC && ex_valid_i) begin
-            $display("[ID FSM] MAC multicycle done, returning to FIRST_CYCLE");
-            id_fsm_d = FIRST_CYCLE;
-            rf_we_raw = rf_we_dec & ex_valid_i;
+          if (alu_operator == ALU_MAC) begin
+            if (ex_valid_i) begin
+              $display("[ID FSM] MAC multicycle done, returning to FIRST_CYCLE");
+              id_fsm_d = FIRST_CYCLE;
+              rf_we_raw = rf_we_dec & ex_valid_i;
+            end else begin
+              stall_multdiv = 1'b1; // Stall until multiplier result is ready
+              rf_we_raw = 1'b0;
+            end
           end else if (multdiv_en_dec) begin
             // $display("[ID FSM] MUL/DIV multicycle, multicycle_done=%b", multicycle_done);
             rf_we_raw = rf_we_dec & ex_valid_i;
@@ -829,5 +914,11 @@ module cve2_id_stage #(
   `ifdef CHECK_MISALIGNED
   `ASSERT(IbexMisalignedMemoryAccess, !lsu_addr_incr_req_i)
   `endif
+
+  always_ff @(posedge clk_i) begin
+    if (rf_we_id_o && mac_en) begin
+      $display("[MAC WB] Writeback: rd=%0d, data=0x%h", rf_waddr_id_o, rf_wdata_id_o);
+    end
+  end
 
 endmodule

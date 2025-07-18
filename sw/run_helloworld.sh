@@ -1,6 +1,6 @@
 #!/bin/bash
 
-exec > run_helloworld.log 2>&1
+# exec > run_helloworld.log 2>&1
 
 set -e  # Exit on any error
 set -x  # Print each command (for debugging)
