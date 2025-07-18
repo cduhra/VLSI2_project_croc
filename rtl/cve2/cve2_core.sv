@@ -401,6 +401,7 @@ module cve2_core import cve2_pkg::*; #(
     .imd_val_d_ex_i (imd_val_d_ex),
     .imd_val_we_ex_i(imd_val_we_ex),
 
+
     .mult_en_ex_o            (mult_en_ex),
     .div_en_ex_o             (div_en_ex),
     .mult_sel_ex_o           (mult_sel_ex),
@@ -471,6 +472,7 @@ module cve2_core import cve2_pkg::*; #(
     .en_wb_o           (en_wb),
     .instr_perf_count_id_o (instr_perf_count_id),
 
+    
     // Performance Counters
     .perf_jump_o      (perf_jump),
     .perf_branch_o    (perf_branch),

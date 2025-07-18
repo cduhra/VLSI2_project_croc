@@ -44,19 +44,20 @@ uint32_t isqrt(uint32_t n) {
     ( (0x40 << 25) | ((rs2) << 20) | ((rs1) << 15) | (0x0 << 12) | ((rd) << 7) | 0x33 )
 
 static inline int mac(int a, int b, int c) {
-    int result = c;
+    int result = c; // accumulator in result/rd
     asm volatile (
-        "mv a0, %1\n"
-        "mv a1, %2\n"
-        "mv a2, %3\n"
-        ".word %4\n"
-        "mv %0, a2\n"
-        : "=r"(result)
-        : "r"(a), "r"(b), "r"(c), "i"(ENCODE_MAC(12, 10, 11))
+        "mv a0, %1\n"      // a
+        "mv a1, %2\n"      // b
+        "mv a2, %0\n"      // accumulator in a2 (rd)
+        ".word %3\n"       // MAC instruction: rd=a2, rs1=a0, rs2=a1
+        "mv %0, a2\n"      // move result back to C variable
+        : "+r"(result)
+        : "r"(a), "r"(b), "i"(ENCODE_MAC(12, 10, 11))
         : "a0", "a1", "a2"
     );
     return result;
 }
+
 
 // static inline int mul(int a, int b) {
 //     int result;
@@ -169,16 +170,21 @@ int main() {
     uart_write_flush();
 
     // MAC not returning because of the return loop
-    //int result = mac(a, b, c);
-    //printf("MAC test: 0x%x \n", result);
-    //uart_write_flush();
+    uint32_t start_mac = get_mcycle();
+    int result = mac(a, b, c);
+    printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
+    uint32_t end_mac = get_mcycle();
+    uart_write_flush();
 
-    // if (result == true_res) {
-    //     printf("MAC instruction works!\n");
-    //     uart_write_flush();
-    // } else {
-    //     printf("MAC instruction FAILED!\n");
-    //     uart_write_flush();
-    // }
+    printf("MAC cycles: 0x%x\n", end_mac - start_mac);
+    uart_write_flush();
+
+    if (result == true_res) {
+        printf("MAC instruction works!\n");
+        uart_write_flush();
+    } else {
+        printf("MAC instruction FAILED!\n");
+        uart_write_flush();
+    }
     return 1;
 }

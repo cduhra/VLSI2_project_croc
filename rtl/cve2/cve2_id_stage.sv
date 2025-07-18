@@ -130,6 +130,8 @@ module cve2_id_stage #(
   input  logic [31:0]               rf_rdata_a_i,
   output logic [4:0]                rf_raddr_b_o,
   input  logic [31:0]               rf_rdata_b_i,
+  output logic [4:0]                rf_raddr_c_o,
+  input  logic [31:0]               rf_rdata_c_i,
   output logic                      rf_ren_a_o,
   output logic                      rf_ren_b_o,
 
@@ -137,10 +139,6 @@ module cve2_id_stage #(
   output logic [4:0]                rf_waddr_id_o,
   output logic [31:0]               rf_wdata_id_o,
   output logic                      rf_we_id_o,
-
-  // Add a third read address for MAC accumulator
-  output logic [4:0]                rf_raddr_c_o,
-  input  logic [31:0]               rf_rdata_c_i,
 
   output  logic                     en_wb_o,
   output  logic                     instr_perf_count_id_o,
@@ -158,16 +156,6 @@ module cve2_id_stage #(
 
   import cve2_pkg::*;
 
-  // USER CODE BEGIN ================================================
-  // MAC SIGNALS
-  logic mac_en;
-  logic mac_en_2_cycles;
-  cve2_pkg::alu_op_e alu_operator_MAC;
-  logic rf_raddr_a_MUX;
-  logic rf_waddr_id_MUX;
-  logic result_ex_i_q;
-  // USER CODE END ==================================================
-  
   // Decoder/Controller, ID stage internal signals
   logic        illegal_insn_dec;
   logic        ebrk_insn;
@@ -192,7 +180,6 @@ module cve2_id_stage #(
   logic        stall_multdiv;
   logic        stall_branch;
   logic        stall_jump;
-  logic        stall_mac; // Stall for MAC if mac_en is asserted and MAC controller is
   logic        stall_id;
   logic        flush_id;
   logic        multicycle_done;
@@ -257,23 +244,9 @@ module cve2_id_stage #(
   logic [31:0] alu_operand_a;
   logic [31:0] alu_operand_b;
 
-  // MAC Control
-  // In your decoder, add logic to set rf_raddr_c_o to rd for MAC
-  always_comb begin
-    if (alu_operator == ALU_MAC) begin
-      rf_raddr_c_o = rf_waddr_id_o; // rd as accumulator
-    end else begin
-      rf_raddr_c_o = 5'b0;
-    end
-  end
-
-  always_comb begin
-    if (alu_operator == ALU_MAC) begin
-      imd_val_q[0] = rf_rdata_c_i; // accumulator value from rd
-    end else begin
-      imd_val_q[0] = '0;
-    end
-  end
+  // USER CODE START
+  logic mac_en;
+  // USER CODE END
 
   /////////////
   // LSU Mux //
@@ -362,6 +335,21 @@ module cve2_id_stage #(
     endcase
   end
 
+  // USER CODE START
+  // After assign alu_operand_b_ex_o = alu_operand_b;
+  always_comb begin
+  if (alu_operator == ALU_MAC && !instr_first_cycle) begin
+    alu_operand_a_ex_o = rf_rdata_a_fwd; // Use the value from register file (rd)
+    alu_operand_b_ex_o = imd_val_q[0][31:0];
+    $display("[MAC ID] Accumulate cycle: Accumulator (alu_operand_a): 0x%h, Multiplier result (imd_val_q[0]): 0x%h",
+             alu_operand_a_ex_o, alu_operand_b_ex_o);
+  end else begin
+    // $display("[MAC ID] Multiply cycle: rs1=0x%h, rs2=0x%h", alu_operand_a, alu_operand_b);
+    alu_operand_a_ex_o = alu_operand_a;
+    alu_operand_b_ex_o = alu_operand_b;
+  end
+  end
+  // USER CODE END
   /////////////
   // Decoder //
   /////////////
@@ -410,6 +398,9 @@ module cve2_id_stage #(
     .rf_ren_a_o  (rf_ren_a_dec),
     .rf_ren_b_o  (rf_ren_b_dec),
 
+    // USER CODE START
+    .mac_en_o(mac_en),
+    // USER CODE END
     // ALU
     .alu_operator_o    (alu_operator),
     .alu_op_a_mux_sel_o(alu_op_a_mux_sel_dec),
@@ -658,52 +649,42 @@ module cve2_id_stage #(
     stall_jump              = 1'b0;
     stall_branch            = 1'b0;
     stall_alu               = 1'b0;
-    stall_mac               = 1'b0;
     branch_set_raw_d        = 1'b0;
     jump_set_raw            = 1'b0;
     perf_branch_o           = 1'b0;
 
-    // ====== USERD CODE ==========================
-    stall_mac = (alu_operator == ALU_MAC) && mac_en_2_cycles;
+    
     if (instr_executing_spec) begin
       unique case (id_fsm_q)
         FIRST_CYCLE: begin
           unique case (1'b1)
             lsu_req_dec: begin
-              begin
-                // LSU operation
-                id_fsm_d    = MULTI_CYCLE;
-              end
+              // $display("[ID FSM] Entering MULTI_CYCLE for LSU");
+              id_fsm_d    = MULTI_CYCLE;
             end
             multdiv_en_dec: begin
-              // MUL or DIV operation
               if (~ex_valid_i) begin
-                // When single-cycle multiply is configured mul can finish in the first cycle so
-                // only enter MULTI_CYCLE state if a result isn't immediately available
+                // $display("[ID FSM] Entering MULTI_CYCLE for MUL/DIV");
                 id_fsm_d      = MULTI_CYCLE;
                 rf_we_raw     = 1'b0;
                 stall_multdiv = 1'b1;
               end
             end
             branch_in_dec: begin
-              // cond branch operation
-              // All branches take two cycles in fixed time execution mode, regardless of branch
-              // condition.
-              // SEC_CM: CORE.DATA_REG_SW.SCA
-              id_fsm_d         = (branch_decision_i) ?
-                                     MULTI_CYCLE : FIRST_CYCLE;
+              // $display("[ID FSM] Branch operation, branch_decision_i=%b", branch_decision_i);
+              id_fsm_d         = (branch_decision_i) ? MULTI_CYCLE : FIRST_CYCLE;
               stall_branch     = branch_decision_i;
               branch_set_raw_d = branch_decision_i;
-
               perf_branch_o = 1'b1;
             end
             jump_in_dec: begin
-              // uncond branch operation
+              // $display("[ID FSM] Jump operation");
               id_fsm_d      = MULTI_CYCLE;
               stall_jump    = 1'b1;
               jump_set_raw  = jump_set_dec;
             end
             alu_multicycle_dec: begin
+              // $display("[ID FSM] Entering MULTI_CYCLE for ALU multicycle op");
               stall_alu     = 1'b1;
               id_fsm_d      = MULTI_CYCLE;
               rf_we_raw     = 1'b0;
@@ -715,12 +696,20 @@ module cve2_id_stage #(
         end
 
         MULTI_CYCLE: begin
-          if(multdiv_en_dec) begin
-            rf_we_raw       = rf_we_dec & ex_valid_i;
-          end
-
-          if (multicycle_done) begin
-            id_fsm_d        = FIRST_CYCLE;
+          // For MAC, retire after one accumulate cycle
+          if (alu_operator == ALU_MAC && ex_valid_i) begin
+            $display("[ID FSM] MAC multicycle done, returning to FIRST_CYCLE");
+            id_fsm_d = FIRST_CYCLE;
+            rf_we_raw = rf_we_dec & ex_valid_i;
+          end else if (multdiv_en_dec) begin
+            // $display("[ID FSM] MUL/DIV multicycle, multicycle_done=%b", multicycle_done);
+            rf_we_raw = rf_we_dec & ex_valid_i;
+            if (multicycle_done) begin
+              id_fsm_d = FIRST_CYCLE;
+            end
+          end else if (multicycle_done) begin
+            // $display("[ID FSM] Other multicycle done, returning to FIRST_CYCLE");
+            id_fsm_d = FIRST_CYCLE;
           end else begin
             stall_multdiv   = multdiv_en_dec;
             stall_branch    = branch_in_dec;
@@ -735,16 +724,13 @@ module cve2_id_stage #(
     end
   end
 
-  always @(multdiv_en_dec) begin
-    $display("[id_stage] multdiv_en_dec is: %0d", multdiv_en_dec);
-  end
-
   `ASSERT(StallIDIfMulticycle, (id_fsm_q == FIRST_CYCLE) & (id_fsm_d == MULTI_CYCLE) |-> stall_id)
 
 
   // Stall ID/EX stage for reason that relates to instruction in ID/EX, update assertion below if
   // modifying this.
-  assign stall_id = stall_mem | stall_multdiv | stall_jump | stall_branch | stall_alu | stall_mac;
+  assign stall_id = stall_mem | stall_multdiv | stall_jump | stall_branch |
+                      stall_alu;
 
   // Generally illegal instructions have no reason to stall, however they must still stall waiting
   // for outstanding memory requests so exceptions related to them take priority over the illegal
@@ -843,7 +829,5 @@ module cve2_id_stage #(
   `ifdef CHECK_MISALIGNED
   `ASSERT(IbexMisalignedMemoryAccess, !lsu_addr_incr_req_i)
   `endif
-
-  
 
 endmodule

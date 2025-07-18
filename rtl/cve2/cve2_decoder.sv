@@ -468,12 +468,13 @@ module cve2_decoder #(
 
             // ===================================================================
             {7'b100_0000, 3'b000}: begin // MAC
+              $display("[decoder] MAC instruction decoded: rd=%0d rs1=%0d rs2=%0d PC=0x%h", instr_rd, instr_rs1, instr_rs2, instr[31:0]);
               mac_en_o = 1'b1;  // enable accumulator read
               alu_operator_o = ALU_MAC;
-              
-              // MUL instruction
-              multdiv_operator_o    = MD_OP_MULL;
-              multdiv_signed_mode_o = 2'b00;
+              // alu_multicycle_o = 1'b1;  
+              // // MUL instruction
+              // multdiv_operator_o    = MD_OP_MULL;
+              // multdiv_signed_mode_o = 2'b00;
               illegal_insn          = (RV32M == RV32MNone) ? 1'b1 : 1'b0;
 
             end

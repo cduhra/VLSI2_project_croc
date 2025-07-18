@@ -48,46 +48,6 @@ module cve2_ex_block #(
   import cve2_pkg::*;
 
   logic [31:0] alu_result, multdiv_result;
-  logic [31:0] mac_result;
-
-  // MAC controller signals
-  logic mac_en;
-  cve2_pkg::alu_op_e alu_operator_mac;
-  logic mac_en_2_cycles;
-
-  // MAC enable: set high for MAC instructions
-  assign mac_en = (alu_operator_i == cve2_pkg::ALU_MAC);
-
-  // Instantiate MAC controller
-  cve2_mac_controller mac_controller_i (
-    .clk_i(clk_i),
-    .rst_ni(rst_ni),
-    .alu_operator_i(alu_operator_i),
-    .mac_en_i(mac_en),
-    .alu_operator_o(alu_operator_mac),
-    .mac_en_2_cycles_o(mac_en_2_cycles)
-  );
-
-  // MAC operation: Multiply-Accumulate
-  always_comb begin
-    mac_result = 32'b0;
-    // Use MAC controller's output to gate MAC operation
-    if (mac_en_2_cycles) begin
-      // MAC: alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0]
-      mac_result = alu_operand_a_i * alu_operand_b_i + imd_val_q_i[0][31:0];
-    end
-  end
-
-  // Select result for output
-  always_comb begin
-    if (mac_en_2_cycles) begin
-      result_ex_o = mac_result;
-    end else if (multdiv_sel) begin
-      result_ex_o = multdiv_result;
-    end else begin
-      result_ex_o = alu_result;
-    end
-  end
 
   logic [32:0] multdiv_alu_operand_b, multdiv_alu_operand_a;
   logic [33:0] alu_adder_result_ext;
@@ -118,6 +78,8 @@ module cve2_ex_block #(
 
   assign alu_imd_val_q = '{imd_val_q_i[0][31:0], imd_val_q_i[1][31:0]};
 
+  assign result_ex_o  = multdiv_sel ? multdiv_result : alu_result;
+
   // branch handling
   assign branch_decision_o  = alu_cmp_result;
 
@@ -133,7 +95,7 @@ module cve2_ex_block #(
   cve2_alu #(
     .RV32B(RV32B)
   ) alu_i (
-    .operator_i         (mac_en_2_cycles ? alu_operator_mac : alu_operator_i),
+    .operator_i         (alu_operator_i),
     .operand_a_i        (alu_operand_a_i),
     .operand_b_i        (alu_operand_b_i),
     .instr_first_cycle_i(alu_instr_first_cycle_i),
@@ -208,10 +170,6 @@ module cve2_ex_block #(
     assign multdiv_alu_operand_b = '0;
     assign multdiv_result        = '0;
     assign multdiv_valid         = '0;
-  end
-
-  always @(multdiv_valid) begin
-    $display("[ex_stage] multdiv_valid is: %0d", multdiv_valid);
   end
 
   // Multiplier/divider may require multiple cycles. The ALU output is valid in the same cycle

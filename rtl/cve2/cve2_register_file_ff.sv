@@ -30,6 +30,9 @@ module cve2_register_file_ff #(
   output logic [DataWidth-1:0] rdata_b_o,
 
 
+
+
+
   // Write port W1
   input  logic [4:0]           waddr_a_i,
   input  logic [DataWidth-1:0] wdata_a_i,
@@ -63,11 +66,12 @@ module cve2_register_file_ff #(
 
   // R0 is nil
   assign rf_reg[0] = WordZeroVal;
-
   assign rf_reg[NUM_WORDS-1:1] = rf_reg_q[NUM_WORDS-1:1];
 
   assign rdata_a_o = rf_reg[raddr_a_i];
   assign rdata_b_o = rf_reg[raddr_b_i];
+
+  
 
   // Signal not used in FF register file
   logic unused_test_en;

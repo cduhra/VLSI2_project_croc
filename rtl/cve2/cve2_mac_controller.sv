@@ -37,7 +37,8 @@ module cve2_mac_controller (
 
     // Outputs
     output cve2_pkg::alu_op_e       alu_operator_o, // Output ALU operator
-    output logic                    mac_en_2_cycles_o // MAC enable for 2 cycles
+    output logic                    mac_en_2_cycles_o, // MAC enable for 2 cycles
+    output logic                    mac_mul_en_o // Add this to the port list
 );
     // In idle mode the signal must be transparent
     typedef enum logic [1:0] {IDLE, MUL, ADD} mac_state_e;
@@ -52,20 +53,21 @@ module cve2_mac_controller (
         state_d = state_q;
         alu_operator_d = alu_operator_q;
         mac_en_2_cycles_d = 1'b0;
+        mac_mul_en_o = 1'b0; // Default
 
         case (state_q)
             IDLE: begin
                 if (alu_operator_i == cve2_pkg::ALU_MAC && mac_en_i) begin
                     state_d = MUL;
-                    alu_operator_d = cve2_pkg::ALU_CLMUL;
-                    mac_en_2_cycles_d = 1'b1; // Stall during MUL
+                    mac_mul_en_o = 1'b1; // Enable multiplier for MAC
+                    mac_en_2_cycles_d = 1'b1;
                 end else begin
                     alu_operator_d = alu_operator_i;
                 end
             end
             MUL: begin
                 alu_operator_d = cve2_pkg::ALU_ADD;
-                mac_en_2_cycles_d = 1'b1; // Stall during ADD
+                mac_en_2_cycles_d = 1'b1;
                 state_d = ADD;
             end
             ADD: begin
