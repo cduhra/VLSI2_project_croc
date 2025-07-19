@@ -587,19 +587,19 @@ module cve2_id_stage #(
   
 
   // Trace alu_operand_b_ex_o assignment
-  always_ff @(posedge clk_i) begin
-    if (mac_en) begin
-      $display("[ID] MAC signals: mac_en=%b alu_operator=%0d mult_en=%b multdiv_operator=%0d mult_sel=%b instr_executing=%b ex_valid_i=%b",
-        mac_en, alu_operator, mult_en_dec, multdiv_operator, mult_sel_ex_o, instr_executing, ex_valid_i);
-    end
-  end
+  // always_ff @(posedge clk_i) begin
+  //   if (mac_en) begin
+  //     $display("[ID] MAC signals: mac_en=%b alu_operator=%0d mult_en=%b multdiv_operator=%0d mult_sel=%b instr_executing=%b ex_valid_i=%b",
+  //       mac_en, alu_operator, mult_en_dec, multdiv_operator, mult_sel_ex_o, instr_executing, ex_valid_i);
+  //   end
+  // end
 
-  always_comb begin
-    if (mac_en_2_cycles) begin
-      $display("[ID STAGE] MAC accumulate: alu_operand_b_ex_o = result_ex_i_q = 0x%h, rf_raddr_a_o = rf_waddr_id_MUX = %0d imd_val_q[0]=0x%h alu_operand_b_ex_o=0x%h rd(regfile)=0x%h",
-        result_ex_i_q, rf_waddr_id_MUX, imd_val_q[0], alu_operand_b_ex_o, rf_rdata_a_fwd);
-    end
-  end
+  // always_comb begin
+  //   if (mac_en_2_cycles) begin
+  //     $display("[ID STAGE] MAC accumulate: alu_operand_b_ex_o = result_ex_i_q = 0x%h, rf_raddr_a_o = rf_waddr_id_MUX = %0d imd_val_q[0]=0x%h alu_operand_b_ex_o=0x%h rd(regfile)=0x%h",
+  //       result_ex_i_q, rf_waddr_id_MUX, imd_val_q[0], alu_operand_b_ex_o, rf_rdata_a_fwd);
+  //   end
+  // end
   // ====================================================
 
   assign multdiv_en_dec   = mult_en_dec | div_en_dec;
@@ -619,11 +619,9 @@ module cve2_id_stage #(
   // asserting it for an illegal csr access would result in a flush that would need to deassert it).
   assign csr_op_en_o             = csr_access_o & instr_executing & instr_id_done_o;
 
-  // ====================================================
+  // ===================USER START CODE=======================
   assign alu_operator_ex_o           = mac_en ? alu_operator_MAC : alu_operator;
-  // ====================================================
-  
-  // ===========================
+
    logic [31:0] mac_acc_saved;
 
   // Add these registers at the top of your module
@@ -700,9 +698,9 @@ module cve2_id_stage #(
   // end
   assign mult_en_ex_o      = (mac_en && mac_mul_en_comb_o) ? 1'b1 : mult_en_id;
   assign div_en_ex_o                 = div_en_id;
-  // ====================================================
+
   assign multdiv_operator_ex_o = (mac_en && mac_mul_en_comb_o) ? md_operator_MAC : multdiv_operator;
-  // ====================================================
+  // =======================USER END CODE=========================
   assign multdiv_signed_mode_ex_o    = multdiv_signed_mode;
   assign multdiv_operand_a_ex_o      = rf_rdata_a_fwd;
   assign multdiv_operand_b_ex_o      = rf_rdata_b_fwd;
