@@ -27,7 +27,7 @@ uint8_t format_hex32(char *buffer, uint32_t num) {
     return idx;
 }
 
-void printf(const char *fmt, ...) {
+void printf(char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char buffer[12];  // holds string while assembling
@@ -43,11 +43,6 @@ void printf(const char *fmt, ...) {
                     putchar(buffer[j]);
                 }
             }
-            else if (*fmt == 'c'){
-                char ch = (char)va_arg(args, int);  // char is promoted to int
-                putchar(ch);
-            }
-            
         } else {
             putchar(*fmt);
         }

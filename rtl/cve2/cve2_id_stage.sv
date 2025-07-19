@@ -693,11 +693,11 @@ module cve2_id_stage #(
   assign alu_operand_b_ex_o = mac_en_2_cycles ? imd_val_q[0] : alu_operand_b;
   // Use rd for MAC accumulate, rs1 for normal instructions
   assign rf_raddr_a_o = (mac_en || mac_en_2_cycles) ? mac_rd_saved : instr_rdata_i[19:15];
-  always_ff @(posedge clk_i) begin
-    if (mac_en_2_cycles) begin
-      $display("[MAC REGFILE] Reading rd=%0d, value=0x%h", mac_rd_saved, rf_rdata_a_i);
-    end
-  end
+  // always_ff @(posedge clk_i) begin
+  //   if (mac_en_2_cycles) begin
+  //     $display("[MAC REGFILE] Reading rd=%0d, value=0x%h", mac_rd_saved, rf_rdata_a_i);
+  //   end
+  // end
   assign mult_en_ex_o      = (mac_en && mac_mul_en_comb_o) ? 1'b1 : mult_en_id;
   assign div_en_ex_o                 = div_en_id;
   // ====================================================

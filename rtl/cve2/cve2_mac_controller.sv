@@ -71,7 +71,7 @@ module cve2_mac_controller (
                     mac_md_operator_d = cve2_pkg::MD_OP_MULL; // Set multiplier op
                     alu_operator_d = alu_operator_q; // ALU always does ADD for MAC
                     mac_en_2_cycles_d = 1'b1;
-                    $display("[MAC CTRL] IDLE->MUL: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
+                    //$display("[MAC CTRL] IDLE->MUL: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
                     
                 end else begin
                     mac_en_2_cycles_d = 1'b0;
@@ -87,12 +87,12 @@ module cve2_mac_controller (
                     state_d = ADD;
                     mac_mul_en_d = 1'b0; // Disable multiplier
                     alu_operator_d = cve2_pkg::ALU_MAC;
-                    $display("[MAC CTRL] MUL->ADD: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
+                    //$display("[MAC CTRL] MUL->ADD: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
                 end else begin
                     mac_mul_en_d = 1'b1;
                     alu_operator_d = alu_operator_q; // Keep ALU operator as MAC
                     mac_md_operator_d = mac_md_operator_q;
-                    $display("[MAC CTRL] MUL: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
+                    //$display("[MAC CTRL] MUL: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
                 end
                 
             end
@@ -102,7 +102,7 @@ module cve2_mac_controller (
                 state_d = IDLE;
                 mac_mul_en_d = 1'b0;
                 mac_md_operator_d = mac_md_operator_q;
-                $display("[MAC CTRL] ADD->IDLE: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
+                // $display("[MAC CTRL] ADD->IDLE: alu_operator_d=%0d (ALU_MAC)", alu_operator_d);
             end
             default: begin
                 state_d = IDLE;
@@ -110,7 +110,7 @@ module cve2_mac_controller (
                 mac_en_2_cycles_d = 1'b0;
                 mac_mul_en_d = 1'b0;
                 mac_md_operator_d = mac_md_operator_q;
-                $display("[MAC CTRL] DEFAULT: alu_operator_d=%0d (passthrough)", alu_operator_d);
+                // $display("[MAC CTRL] DEFAULT: alu_operator_d=%0d (passthrough)", alu_operator_d);
             end
         endcase
     end
@@ -136,11 +136,11 @@ module cve2_mac_controller (
     assign mac_en_2_cycles_o = mac_en_2_cycles_q;
     assign mac_mul_en_o = mac_mul_en_q;
     assign mac_md_operator_o = mac_md_operator_q;
-    always_ff @(posedge clk_i) begin
-        if (mac_en_i && alu_operator_i == cve2_pkg::ALU_MAC)
-            $display("[MAC CTRL] MAC detected: state_q=%0d mac_mul_en_d=%b", state_q, mac_mul_en_d);
-        if (mac_mul_en_o)
-            $display("[MAC CTRL] mac_mul_en_o asserted: state_q=%0d", state_q);
-    end
+    // always_ff @(posedge clk_i) begin
+    //     if (mac_en_i && alu_operator_i == cve2_pkg::ALU_MAC)
+    //         $display("[MAC CTRL] MAC detected: state_q=%0d mac_mul_en_d=%b", state_q, mac_mul_en_d);
+    //     if (mac_mul_en_o)
+    //         $display("[MAC CTRL] mac_mul_en_o asserted: state_q=%0d", state_q);
+    // end
     
 endmodule

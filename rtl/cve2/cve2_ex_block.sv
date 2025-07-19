@@ -177,11 +177,11 @@ module cve2_ex_block #(
   // final cycle of ALU operation).
   assign ex_valid_o = multdiv_sel ? multdiv_valid : ~(|alu_imd_val_we);
 
-  always_ff @(posedge clk_i) begin
-    if (alu_operator_i == cve2_pkg::ALU_MAC) begin
-      $display("[EX BLOCK] MAC active: result_ex_o=0x%h multdiv_sel=%b multdiv_result=0x%h alu_result=0x%h imd_val_d_o[0]=0x%h imd_val_we_o[0]=%b",
-        result_ex_o, multdiv_sel, multdiv_result, alu_result, imd_val_d_o[0], imd_val_we_o[0]);
-    end
-  end
+  // always_ff @(posedge clk_i) begin
+  //   if (alu_operator_i == cve2_pkg::ALU_MAC) begin
+  //     $display("[EX BLOCK] MAC active: result_ex_o=0x%h multdiv_sel=%b multdiv_result=0x%h alu_result=0x%h imd_val_d_o[0]=0x%h imd_val_we_o[0]=%b",
+  //       result_ex_o, multdiv_sel, multdiv_result, alu_result, imd_val_d_o[0], imd_val_we_o[0]);
+  //   end
+  // end
   
 endmodule

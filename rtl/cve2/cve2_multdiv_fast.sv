@@ -372,12 +372,12 @@ module cve2_multdiv_fast #(
           mult_state_q <= mult_state_d;
 
           // Debug statements for fast multiplier operation
-          $display("[multidiv_fast] mult_state_q: %0d", mult_state_q);
-          $display("[multidiv_fast] op_a_i: 0x%h, op_b_i: 0x%h", op_a_i, op_b_i);
-          $display("[multidiv_fast] mult_op_a: 0x%h, mult_op_b: 0x%h", mult_op_a, mult_op_b);
-          $display("[multidiv_fast] accum: 0x%h", accum);
-          $display("[multidiv_fast] mac_res_d: 0x%h", mac_res_d);
-          $display("[multidiv_fast] mult_valid: %0d", mult_valid);
+          // $display("[multidiv_fast] mult_state_q: %0d", mult_state_q);
+          // $display("[multidiv_fast] op_a_i: 0x%h, op_b_i: 0x%h", op_a_i, op_b_i);
+          // $display("[multidiv_fast] mult_op_a: 0x%h, mult_op_b: 0x%h", mult_op_a, mult_op_b);
+          // $display("[multidiv_fast] accum: 0x%h", accum);
+          // $display("[multidiv_fast] mac_res_d: 0x%h", mac_res_d);
+          // $display("[multidiv_fast] mult_valid: %0d", mult_valid);
         end
       end
     end

@@ -1398,10 +1398,8 @@ module cve2_alu #(
       ALU_CLMULH: result_o = clmul_result;
 
       // MAC Operation
-      ALU_MAC: begin
-        result_o = mac_result;
-        $display("[ALU] MAC operation: operand_a=0x%h operand_b=0x%h imd_val_q_i=0x%h mac_results=0x%h result=0x%h", operand_a_i, operand_b_i, imd_val_q_i[0], mac_result, result_o);
-      end
+      ALU_MAC: result_o = mac_result;
+        
 
       default: ;
     endcase

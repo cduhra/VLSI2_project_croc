@@ -141,20 +141,20 @@ int main() {
     // uart_write_flush();
 
     // // ================Userrom test===============
-    // printf("BEGIN User Rom Test\n");
-    // uart_write_flush();
+    printf("BEGIN User Rom Test\n");
+    uart_write_flush();
 
-    // printf("The content of the ROM (interpreted as ASCII) is:\n");
-    // for(int i = 0; i < BYTES; i++) {
-    //     char c = *reg8(USER_ROM_BASE_ADDR, i);
-    //     if (c == '\0') break;
-    //     printf("%c", c);
-    // }
+    printf("The content of the ROM (interpreted as ASCII) is:\n");
+    for(int i = 0; i < BYTES; i++) {
+        char c = *reg8(USER_ROM_BASE_ADDR, i);
+        if (c == '\0') break;
+        printf("%c", c);
+    }
    
-    // uart_write_flush();
+    uart_write_flush();
 
-    // printf("END User Rom Test\n");
-    // uart_write_flush();
+    printf("END User Rom Test\n");
+    uart_write_flush();
     // // ==============END Userrom test==============
 
     // ==============MAC Test==============
@@ -162,8 +162,8 @@ int main() {
     uart_write_flush();
 
     // Test the MAC instruction
-    int a = 7, b = 6, c = 5;
-    int d = 7, e = 6, f = 5;
+    int a = 50, b = 23, c = 11;
+    int d = 50, e = 23, f = 11;
     int expected;
     uint32_t start = get_mcycle();
     expected = mul(a, b);
