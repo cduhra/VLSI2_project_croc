@@ -44,18 +44,15 @@ uint32_t isqrt(uint32_t n) {
     ( (0x40 << 25) | ((rs2) << 20) | ((rs1) << 15) | (0x0 << 12) | ((rd) << 7) | 0x33 )
 
 static inline int mac(int a, int b, int c) {
-    int result;
+    register int a0 asm("a0") = a;
+    register int a1 asm("a1") = b;
+    register int a2 asm("a2") = c;
     asm volatile (
-        "mv a0, %1\n"      // a
-        "mv a1, %2\n"      // b
-        "mv a2, %3\n"      // accumulator in a2 (rd)
-        ".word %4\n"       // MAC instruction: rd=a2, rs1=a0, rs2=a1
-        "mv %0, a2\n"      // move result back to C variable
-        : "=r"(result)
-        : "r"(a), "r"(b), "r"(c), "i"(ENCODE_MAC(12, 10, 11))
-        : "a0", "a1", "a2"
+        ".word %3\n"       // MAC instruction: rd=a2, rs1=a0, rs2=a1
+        : "+r"(a2)
+        : "r"(a0), "r"(a1), "i"(ENCODE_MAC(12, 10, 11))
     );
-    return result;
+    return a2;
 }
 
 
@@ -78,6 +75,16 @@ static inline int mul(int a, int b) {
         : "r"(a6)       // a6 is input
     );
     return a5;
+}
+
+static inline int add(int x, int y){
+    int result;
+    asm volatile (
+        "add %0, %1, %2"
+        : "=r"(result)
+        : "r"(x), "r"(y)
+    );
+    return result;
 }
 
 
@@ -156,26 +163,25 @@ int main() {
 
     // Test the MAC instruction
     int a = 7, b = 6, c = 5;
+    int d = 7, e = 6, f = 5;
     int expected;
     uint32_t start = get_mcycle();
     expected = mul(a, b);
-    uint32_t end = get_mcycle();
-    printf("MUL test: 0x%x \n", expected);
+    expected = add(expected, c); // expected result is a * b + c
+    uint32_t end = get_mcycle();    
+    printf("Expected result: 0x%x, Cycles without MAC: 0x%x\n", expected, end - start);
     uart_write_flush();
-    expected = expected + c; // expected result is a * b + c
-    printf("ADD test: 0x%x \n", expected);
-    uart_write_flush();
-    int true_res = a * b + c;
-    printf("MUL cycles: 0x%x\n", end - start);
-    uart_write_flush();
-
+    int true_res = d * e + f;
     // MAC not returning because of the return loop
+    int result;
     uint32_t start_mac = get_mcycle();
-    asm volatile ("mv a2, %0" :: "r"(c));
-    asm volatile ("nop; nop; nop; nop; nop;");
-    int result = mac(a, b, c);
-    printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
+    // asm volatile ("mv a2, %0" : : "r"(c) : "a2");
+    
+    result = mac(a, b, c);
+    printf("Why is this not returning?\n");
+    uart_write_flush();
     uint32_t end_mac = get_mcycle();
+    printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
     uart_write_flush();
 
     printf("MAC cycles: 0x%x\n", end_mac - start_mac);

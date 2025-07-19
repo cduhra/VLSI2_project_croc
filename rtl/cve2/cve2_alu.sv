@@ -1314,16 +1314,9 @@ module cve2_alu #(
 
   // MAC result
   logic [31:0] mac_result;
-  always_comb begin
-    if (operator_i == ALU_MAC) begin
-      mac_result = operand_a_i + imd_val_q_i[0];
-      // Debug display for MAC accumulate
-      $display("[MAC ALU] Accumulator (operand_a_i): 0x%h, Multiplier result (imd_val_q_i[0]): 0x%h, MAC result: 0x%h",
-               operand_a_i, imd_val_q_i[0], mac_result);
-    end else begin
-      mac_result = operand_a_i + operand_b_i;
-    end
-  end
+  
+  assign mac_result = operand_a_i + imd_val_q_i[0];
+ 
 
   ////////////////
   // Result mux //

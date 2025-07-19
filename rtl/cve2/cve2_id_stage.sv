@@ -624,13 +624,82 @@ module cve2_id_stage #(
   // ====================================================
   
   // ===========================
-  assign alu_operand_a_ex_o          = alu_operand_a;
-  assign alu_operand_b_ex_o = mac_en_2_cycles ? imd_val_q[0] : alu_operand_b;
-  assign rf_raddr_a_o = mac_en_2_cycles ? rf_waddr_id_MUX : rf_raddr_a_MUX;
+   logic [31:0] mac_acc_saved;
 
+  // Add these registers at the top of your module
+    logic        prev_rf_we_id_o;
+    logic [4:0]  prev_rf_waddr_id_o;
+    logic [31:0] prev_rf_wdata_id_o;
+
+    // Track previous writeback signals
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        prev_rf_we_id_o    <= 1'b0;
+        prev_rf_waddr_id_o <= 5'b0;
+        prev_rf_wdata_id_o <= 32'b0;
+      end else begin
+        prev_rf_we_id_o    <= rf_we_id_o;
+        prev_rf_waddr_id_o <= rf_waddr_id_o;
+        prev_rf_wdata_id_o <= rf_wdata_id_o;
+      end
+    end
+
+    // Update forwarding logic for MAC accumulator
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (!rst_ni) begin
+        mac_acc_saved <= 32'b0;
+      end else if (mac_en && instr_executing) begin
+        // Forward from previous cycle if MAC follows a write to rd
+        if (prev_rf_we_id_o && (prev_rf_waddr_id_o == instr_rdata_i[11:7])) begin
+          mac_acc_saved <= prev_rf_wdata_id_o;
+          $display("[MAC ACC] Forwarded previous writeback: mac_acc_saved=0x%h (prev_rf_wdata_id_o)", prev_rf_wdata_id_o);
+        end
+        // Forward current cycle writeback if simultaneous
+        else if (rf_we_id_o && (rf_waddr_id_o == instr_rdata_i[11:7])) begin
+          mac_acc_saved <= rf_wdata_id_o;
+          $display("[MAC ACC] Forwarded current writeback: mac_acc_saved=0x%h (rf_wdata_id_o)", rf_wdata_id_o);
+        end
+        // Otherwise, use register file value
+        else begin
+          mac_acc_saved <= rf_rdata_a_i;
+          $display("[MAC ACC] Register file: mac_acc_saved=0x%h (rf_rdata_a_i)", rf_rdata_a_i);
+        end
+      end
+    end
+  always_comb begin
+    // Only enable writeback after MAC is complete
+    rf_we_id_o = rf_we_raw & instr_executing & ~illegal_csr_insn_i;
+    if (mac_en_2_cycles && !ex_valid_i) begin
+      rf_we_id_o = 1'b0; // Stall writeback during MAC
+    end
+  end
+
+  logic [4:0] mac_rd_saved;
+
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      mac_rd_saved <= 5'b0;
+    end else if (mac_en && instr_executing) begin
+      mac_rd_saved <= instr_rdata_i[11:7]; // Save rd at start of MAC
+    end
+  end
+  always_comb begin
+    rf_we_id_o = rf_we_raw & instr_executing & ~illegal_csr_insn_i;
+    if (mac_en_2_cycles && !ex_valid_i) begin
+      rf_we_id_o = 1'b0; // Stall writeback during MAC
+    end
+  end
+  assign alu_operand_a_ex_o = mac_en_2_cycles ? mac_acc_saved : alu_operand_a;
+  assign alu_operand_b_ex_o = mac_en_2_cycles ? imd_val_q[0] : alu_operand_b;
+  // Use rd for MAC accumulate, rs1 for normal instructions
+  assign rf_raddr_a_o = (mac_en || mac_en_2_cycles) ? mac_rd_saved : instr_rdata_i[19:15];
+  always_ff @(posedge clk_i) begin
+    if (mac_en_2_cycles) begin
+      $display("[MAC REGFILE] Reading rd=%0d, value=0x%h", mac_rd_saved, rf_rdata_a_i);
+    end
+  end
   assign mult_en_ex_o      = (mac_en && mac_mul_en_comb_o) ? 1'b1 : mult_en_id;
   assign div_en_ex_o                 = div_en_id;
-
   // ====================================================
   assign multdiv_operator_ex_o = (mac_en && mac_mul_en_comb_o) ? md_operator_MAC : multdiv_operator;
   // ====================================================
@@ -836,25 +905,8 @@ module cve2_id_stage #(
 
     // No data forwarding without writeback stage so always take source register data direct from
     // register file
-    // Forward write data if last cycle wrote to the same register being read
-    // assign rf_rdata_a_fwd = rf_rdata_a_i;
-    logic [4:0]  last_rf_waddr;
-    logic [31:0] last_rf_wdata;
-    logic        last_rf_we;
 
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-      if (!rst_ni) begin
-        last_rf_waddr <= '0;
-        last_rf_wdata <= '0;
-        last_rf_we    <= 1'b0;
-      end else begin
-        last_rf_waddr <= rf_waddr_id_o;
-        last_rf_wdata <= rf_wdata_id_o;
-        last_rf_we    <= rf_we_id_o;
-      end
-    end
-
-    assign rf_rdata_a_fwd = ((last_rf_we && (last_rf_waddr == rf_raddr_a_o) && (rf_raddr_a_o != 0)) ? last_rf_wdata : rf_rdata_a_i);
+    assign rf_rdata_a_fwd = rf_rdata_a_i;
     assign rf_rdata_b_fwd = rf_rdata_b_i;
 
     // Unused Writeback stage only IO & wiring
@@ -920,10 +972,8 @@ module cve2_id_stage #(
   `ASSERT(IbexMisalignedMemoryAccess, !lsu_addr_incr_req_i)
   `endif
 
-  always_ff @(posedge clk_i) begin
-    if (rf_we_id_o && mac_en) begin
-      $display("[MAC WB] Writeback: rd=%0d, data=0x%h", rf_waddr_id_o, rf_wdata_id_o);
-    end
-  end
+  
+
+
 
 endmodule
