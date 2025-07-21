@@ -59,7 +59,6 @@ module cve2_mac_controller (
         state_d = state_q;
         alu_operator_d = alu_operator_q;
         mac_en_2_cycles_d = 1'b0;
-        mac_mul_en_o = mac_mul_en_q;
         mac_mul_en_comb_o = mac_mul_en_d;
         mac_md_operator_d = mac_md_operator_q;
 
@@ -136,11 +135,6 @@ module cve2_mac_controller (
     assign mac_en_2_cycles_o = mac_en_2_cycles_q;
     assign mac_mul_en_o = mac_mul_en_q;
     assign mac_md_operator_o = mac_md_operator_q;
-    // always_ff @(posedge clk_i) begin
-    //     if (mac_en_i && alu_operator_i == cve2_pkg::ALU_MAC)
-    //         $display("[MAC CTRL] MAC detected: state_q=%0d mac_mul_en_d=%b", state_q, mac_mul_en_d);
-    //     if (mac_mul_en_o)
-    //         $display("[MAC CTRL] mac_mul_en_o asserted: state_q=%0d", state_q);
-    // end
+    
     
 endmodule
