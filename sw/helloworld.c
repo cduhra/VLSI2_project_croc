@@ -178,13 +178,20 @@ int main() {
     // asm volatile ("mv a2, %0" : : "r"(c) : "a2");
     
     result = mac(a, b, c);
-    printf("Why is this not returning?\n");
-    uart_write_flush();
+    asm volatile ("nop;"
+                  "nop;"); // ensure MAC retires before reading mcycle
+    // printf("\n");
+    // uart_write_flush();
     uint32_t end_mac = get_mcycle();
     printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
     uart_write_flush();
-
-    printf("MAC cycles: 0x%x\n", end_mac - start_mac);
+    uint32_t start_nop = get_mcycle();
+    asm volatile ("nop;");
+    uint32_t end_nop = get_mcycle();
+    uint32_t nop_cycles = end_nop - start_nop;
+    printf("NOP cycles: 0x%x\n", nop_cycles);
+    uart_write_flush();
+    printf("MAC cycles: 0x%x\n", end_mac - start_mac - nop_cycles - nop_cycles);
     uart_write_flush();
 
     if (result == true_res) {
