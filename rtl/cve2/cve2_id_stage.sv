@@ -423,11 +423,11 @@ module cve2_id_stage #(
     .branch_in_dec_o(branch_in_dec)
   );
 
-  always_ff @(posedge clk_i) begin
-    if (mac_en) begin
-      $display("[ID] MAC signals: mac_en=%b mac_mul_en_o=%b mult_en_ex_o=%b", mac_en, mac_mul_en_o, mult_en_ex_o);
-    end
-  end
+  // always_ff @(posedge clk_i) begin
+  //   if (mac_en) begin
+  //     $display("[ID] MAC signals: mac_en=%b mac_mul_en_o=%b mult_en_ex_o=%b", mac_en, mac_mul_en_o, mult_en_ex_o);
+  //   end
+  // end
 
   // ====================================================
   ////////////////////
@@ -447,10 +447,10 @@ module cve2_id_stage #(
     .mac_mul_en_comb_o (mac_mul_en_comb_o)
   );
 
-  always_ff @(posedge clk_i) begin
-    // $display("[ID] MAC controller: mac_mul_en_o=%b alu_operator_MAC=%0d md_operator_MAC=%0d mac_en_2_cycles=%b",
-    //       mac_mul_en_o, alu_operator_MAC, md_operator_MAC, mac_en_2_cycles);
-  end
+  // always_ff @(posedge clk_i) begin
+  //   // $display("[ID] MAC controller: mac_mul_en_o=%b alu_operator_MAC=%0d md_operator_MAC=%0d mac_en_2_cycles=%b",
+  //   //       mac_mul_en_o, alu_operator_MAC, md_operator_MAC, mac_en_2_cycles);
+  // end
   
   // FlipFlop for backpropagation of the result_ex_i signal
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -650,17 +650,17 @@ module cve2_id_stage #(
         // Forward from previous cycle if MAC follows a write to rd
         if (prev_rf_we_id_o && (prev_rf_waddr_id_o == instr_rdata_i[11:7])) begin
           mac_acc_saved <= prev_rf_wdata_id_o;
-          $display("[MAC ACC] Forwarded previous writeback: mac_acc_saved=0x%h (prev_rf_wdata_id_o)", prev_rf_wdata_id_o);
+          // $display("[MAC ACC] Forwarded previous writeback: mac_acc_saved=0x%h (prev_rf_wdata_id_o)", prev_rf_wdata_id_o);
         end
         // Forward current cycle writeback if simultaneous
         else if (rf_we_id_o && (rf_waddr_id_o == instr_rdata_i[11:7])) begin
           mac_acc_saved <= rf_wdata_id_o;
-          $display("[MAC ACC] Forwarded current writeback: mac_acc_saved=0x%h (rf_wdata_id_o)", rf_wdata_id_o);
+          // $display("[MAC ACC] Forwarded current writeback: mac_acc_saved=0x%h (rf_wdata_id_o)", rf_wdata_id_o);
         end
         // Otherwise, use register file value
         else begin
           mac_acc_saved <= rf_rdata_a_i;
-          $display("[MAC ACC] Register file: mac_acc_saved=0x%h (rf_rdata_a_i)", rf_rdata_a_i);
+          //$display("[MAC ACC] Register file: mac_acc_saved=0x%h (rf_rdata_a_i)", rf_rdata_a_i);
         end
       end
     end
@@ -833,7 +833,7 @@ module cve2_id_stage #(
         MULTI_CYCLE: begin
           if (alu_operator == ALU_MAC) begin
             if (ex_valid_i) begin
-              $display("[ID FSM] MAC multicycle done, returning to FIRST_CYCLE");
+              // $display("[ID FSM] MAC multicycle done, returning to FIRST_CYCLE");
               id_fsm_d = FIRST_CYCLE;
               rf_we_raw = rf_we_dec & ex_valid_i;
             end else begin
