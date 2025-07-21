@@ -163,6 +163,7 @@ rtl/gpio/gpio_reg_top.sv
 rtl/gpio/gpio.sv
 rtl/croc_domain.sv
 rtl/user_domain.sv
+rtl/user_domain/user_rom.sv
 rtl/croc_soc.sv
 rtl/croc_chip.sv
 

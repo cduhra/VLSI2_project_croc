@@ -7,16 +7,16 @@
 
 # All paths relative to yosys/
 
-if {[file exists "../technology"]} {
+if {[file exists "./technology"]} {
 	puts "0. Executing init_tech: load technology from ETHZ DZ cockpit"
-	set pdk_dir "../technology"
+	set pdk_dir "./technology"
 	set pdk_cells_lib ${pdk_dir}/lib
 	set pdk_sram_lib  ${pdk_dir}/lib
 	set pdk_io_lib    ${pdk_dir}/lib
 } else {
 	puts "0. Executing init_tech: load technology from Github PDK"
 	if {![info exists pdk_dir]} {
-		set pdk_dir "../ihp13/pdk"
+		set pdk_dir "./ihp13/pdk"
 	}
 	set pdk_cells_lib ${pdk_dir}/ihp-sg13g2/libs.ref/sg13g2_stdcell/lib
 	set pdk_sram_lib  ${pdk_dir}/ihp-sg13g2/libs.ref/sg13g2_sram/lib

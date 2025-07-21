@@ -7,19 +7,35 @@
 
 # This flows assumes it is beign executed in the yosys/ directory
 # but just to be sure, we go there
-if {[info script] ne ""} {
-    cd "[file dirname [info script]]/../"
-}
+#if {[info script] ne ""} {
+#    cd "[file dirname [info script]]/../"
+#}
+
+# PIGNI CODE #
+
+set sv_flist "./croc.flist"
+set top_design "croc_chip"
+set out_dir "./yosys/out"
+set tmp_dir "./yosys/tmp"
+set rep_dir "./yosys/reports"
+
+puts "using: ${sv_flist}"
+puts "using: ${top_design}"
+puts "using: ${out_dir}"
+puts "using: ${tmp_dir}"
+puts "using: ${rep_dir}"
+
+# END PIGNI CODE #
 
 # Configuration variables are in yosys_commono
 # get environment variables
-source scripts/yosys_common.tcl
+source yosys/scripts/yosys_common.tcl
 
 # ABC logic optimization script
-set abc_script [processAbcScript scripts/abc-opt.script]
+set abc_script [processAbcScript yosys/scripts/abc-opt.script]
 
 # read liberty files and prepare some variables
-source scripts/init_tech.tcl
+source ./yosys/scripts/init_tech.tcl
 
 yosys plugin -i slang.so
 # default from yosys_common.tcl: top_design=croc_chip; sv_flist=../croc.flist
@@ -136,9 +152,9 @@ yosys dfflibmap {*}$tech_cells_args
 # target period (per optimized block/module) in picoseconds
 set period_ps 10000
 # pre-process abc file (written to tmp directory)
-set abc_comb_script   [processAbcScript scripts/abc-opt.script]
+set abc_comb_script   [processAbcScript yosys/scripts/abc-opt.script]
 # call ABC
-yosys abc {*}$tech_cells_args -D $period_ps -script $abc_comb_script -constr src/abc.constr -showtmp
+yosys abc {*}$tech_cells_args -D $period_ps -script $abc_comb_script -constr yosys/src/abc.constr -showtmp
 
 yosys clean -purge
 
@@ -161,3 +177,4 @@ yosys tee -q -o "${rep_dir}/${top_design}_area_logic.rpt" stat -top $top_design 
 # final netlist
 yosys write_verilog -noattr -noexpr -nohex -nodec ${out_dir}/${top_design}_yosys.v
 
+puts "=== SUCCESS: NETLIST CREATED ===="
