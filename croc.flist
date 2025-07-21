@@ -113,6 +113,7 @@ rtl/cve2/cve2_load_store_unit.sv
 rtl/cve2/cve2_multdiv_fast.sv
 rtl/cve2/cve2_multdiv_slow.sv
 rtl/cve2/cve2_pmp.sv
+rtl/cve2/cve2_mac_controller.sv
 rtl/cve2/cve2_register_file_ff.sv
 rtl/cve2/cve2_wb.sv
 rtl/cve2/cve2_cs_registers.sv
