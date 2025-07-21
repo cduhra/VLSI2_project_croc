@@ -20,7 +20,7 @@ proc report_puts { out } {
 }
 
 
-source scripts/reports_area.tcl
+source $CROC_DIR/openroad/scripts/reports_area.tcl
 
 # new version from: https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts/blob/d013d52bc0f10d71c7f943cc2eadfba89fced240/flow/scripts/report_metrics.tcl
 proc report_metrics { when {include_erc true} {include_clock_skew false} } {

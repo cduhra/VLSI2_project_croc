@@ -7,21 +7,34 @@
 # - Jannis Schönleber <janniss@iis.ee.ethz.ch>
 # - Philippe Sauter   <phsauter@iis.ee.ethz.ch>
 
+## ======ADDED CODE BEGIN======
+
+set currentDir [pwd]
+set CROC_DIR $currentDir
+set report_dir $CROC_DIR/openroad/reports
+set save_dir $CROC_DIR/openroad/save
+set netlist $CROC_DIR/yosys/out/croc_chip_yosys.v
+
+set proj_name "mac_enabled_chip"
+set top_design "croc_chip"
+
+## ======ADDED CODE END======
+
 # The main OpenRoad chip flow
-set proj_name $::env(PROJ_NAME)
-set netlist $::env(NETLIST)
-set top_design $::env(TOP_DESIGN)
-set report_dir $::env(REPORTS)
-set save_dir $::env(SAVE)
+#set proj_name $::env(PROJ_NAME)
+#set netlist $::env(NETLIST)
+#set top_design $::env(TOP_DESIGN)
+#set report_dir $::env(REPORTS)
+#set save_dir $::env(SAVE)
 set time [elapsed_run_time]
 set step_by_step_debug 0
 
 # helper scripts
-source scripts/reports.tcl
-source scripts/checkpoint.tcl
+source $CROC_DIR/openroad/scripts/reports.tcl
+source $CROC_DIR/openroad/scripts/checkpoint.tcl
 
 # initialize technology data
-source scripts/init_tech.tcl
+source $CROC_DIR/openroad/scripts/init_tech.tcl
 
 set log_id 0
 
@@ -40,7 +53,7 @@ read_verilog $netlist
 link_design $top_design
 
 utl::report "Read constraints"
-read_sdc src/constraints.sdc
+read_sdc $CROC_DIR/openroad/src/constraints.sdc
 
 utl::report "Check constraints"
 check_setup -verbose                                      > ${report_dir}/${log_id_str}_${proj_name}_checks.rpt
@@ -49,8 +62,8 @@ report_checks -format end -no_line_splits                >> ${report_dir}/${log_
 report_checks -format end -no_line_splits                >> ${report_dir}/${log_id_str}_${proj_name}_checks.rpt
 
 # Size of the chip
-set chipW            1760.0
-set chipH            1760.0
+set chipW            2235.0
+set chipH            2235.0
 
 # thickness of annular ring for pads (length of a pad)
 set padRing           180.0
@@ -63,13 +76,13 @@ initialize_floorplan -die_area "0 0 $chipW $chipH" \
 
 
 utl::report "Connect global nets (power)"
-source scripts/power_connect.tcl
+source $CROC_DIR/openroad/scripts/power_connect.tcl
 
 utl::report "Create Floorplan"
-source scripts/floorplan.tcl
+source $CROC_DIR/openroad/scripts/floorplan.tcl
 
 utl::report "Create Power Grid"
-source scripts/power_grid.tcl
+source $CROC_DIR/openroad/scripts/power_grid.tcl
 save_checkpoint 00_${proj_name}.power_grid
 report_image "00_${proj_name}.power" true
 
@@ -342,11 +355,11 @@ estimate_parasitics -global_routing
 report_metrics "${log_id_str}_${proj_name}.final"
 
 utl::report "Write output"
-write_def                      out/${proj_name}.def
-write_verilog -include_pwr_gnd -remove_cells "$stdfill bondpad*" out/${proj_name}_lvs.v
-write_verilog                  out/${proj_name}.v
-write_db                       out/${proj_name}.odb
-write_sdc                      out/${proj_name}.sdc
+write_def                      $CROC_DIR/openroad/out/${proj_name}.def
+write_verilog -include_pwr_gnd -remove_cells "$stdfill bondpad*" $CROC_DIR/openroad/out/${proj_name}_lvs.v
+write_verilog                  $CROC_DIR/openroad/out/${proj_name}.v
+write_db                       $CROC_DIR/openroad/out/${proj_name}.odb
+write_sdc                      $CROC_DIR/openroad/out/${proj_name}.sdc
 
 ## WARNING: Currently the extract_parasitics command removes metal patches (eg for min area)
 ## So if you want to use it, do so at the very end after writing out the def and odb files

@@ -13,7 +13,7 @@
 if { [info exists ::env(PROJ_NAME)] } {
     set proj_name $::env(PROJ_NAME)
 } else {
-    set proj_name "untitled"
+    set proj_name "MAC_Controller"
 }
 
 if { [info exists ::env(REPORTS)] } {
@@ -33,8 +33,8 @@ utl::report " - Report directory: $report_dir"
 utl::report " - Save directory: $save_dir"
 
 # helper scripts
-source scripts/reports.tcl
-source scripts/checkpoint.tcl
+source openroad/scripts/reports.tcl
+source openroad/scripts/checkpoint.tcl
 
 # initialize technology data
-source scripts/init_tech.tcl
+source openroad/scripts/init_tech.tcl
