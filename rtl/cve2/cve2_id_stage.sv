@@ -664,13 +664,7 @@ module cve2_id_stage #(
         end
       end
     end
-  always_comb begin
-    // Only enable writeback after MAC is complete
-    rf_we_id_o = rf_we_raw & instr_executing & ~illegal_csr_insn_i;
-    if (mac_en_2_cycles && !ex_valid_i) begin
-      rf_we_id_o = 1'b0; // Stall writeback during MAC
-    end
-  end
+  
 
   logic [4:0] mac_rd_saved;
 
@@ -681,21 +675,12 @@ module cve2_id_stage #(
       mac_rd_saved <= instr_rdata_i[11:7]; // Save rd at start of MAC
     end
   end
-  always_comb begin
-    rf_we_id_o = rf_we_raw & instr_executing & ~illegal_csr_insn_i;
-    if (mac_en_2_cycles && !ex_valid_i) begin
-      rf_we_id_o = 1'b0; // Stall writeback during MAC
-    end
-  end
+  
   assign alu_operand_a_ex_o = mac_en_2_cycles ? mac_acc_saved : alu_operand_a;
   assign alu_operand_b_ex_o = mac_en_2_cycles ? imd_val_q[0] : alu_operand_b;
   // Use rd for MAC accumulate, rs1 for normal instructions
-  assign rf_raddr_a_o = (mac_en || mac_en_2_cycles) ? mac_rd_saved : instr_rdata_i[19:15];
-  // always_ff @(posedge clk_i) begin
-  //   if (mac_en_2_cycles) begin
-  //     $display("[MAC REGFILE] Reading rd=%0d, value=0x%h", mac_rd_saved, rf_rdata_a_i);
-  //   end
-  // end
+  //assign rf_raddr_a_o = (mac_en || mac_en_2_cycles) ? mac_rd_saved : instr_rdata_i[19:15];
+  
   assign mult_en_ex_o      = (mac_en && mac_mul_en_comb_o) ? 1'b1 : mult_en_id;
   assign div_en_ex_o                 = div_en_id;
 
