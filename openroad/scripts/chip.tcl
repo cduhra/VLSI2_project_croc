@@ -164,6 +164,12 @@ utl::report "Repair setup"
 repair_timing -setup -skip_pin_swap -verbose
 save_checkpoint ${log_id_str}_${proj_name}.gpl1_repaired
 
+# === Added: Extra repair after global placement ===
+utl::report "Extra repair after global placement"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1 -verbose
+
 # actual global placement
 utl::report "Global Placement (2)"
 global_placement {*}$GPL2_ARGS
@@ -171,6 +177,11 @@ report_metrics "${log_id_str}_${proj_name}.gpl2"
 report_image "${log_id_str}_${proj_name}.gpl2" true true
 save_checkpoint ${log_id_str}_${proj_name}.gpl2
 
+# === Added: Extra repair after global placement 2 ===
+utl::report "Extra repair after global placement 2"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1 -verbose
 
 ###############################################################################
 # DETAILED PLACEMENT                                                          #
@@ -194,6 +205,11 @@ report_metrics "${log_id_str}_${proj_name}.dpl"
 save_checkpoint ${log_id_str}_${proj_name}.dpl
 report_image "${log_id_str}_${proj_name}.dpl" true true
 
+# === Added: Extra repair after detailed placement ===
+utl::report "Extra repair after detailed placement"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1 -verbose
 
 ###############################################################################
 # CLOCK TREE SYNTHESIS                                                        #
@@ -234,6 +250,12 @@ report_metrics "${log_id_str}_${proj_name}.cts_unrepaired"
 utl::report "Repair setup"
 repair_timing -setup -skip_pin_swap -verbose
 
+# === Added: Extra repair after CTS ===
+utl::report "Extra repair after CTS"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1 -verbose
+
 # place inserted cells
 utl::report "Detailed placement"
 detailed_placement {*}$DPL_ARGS
@@ -246,7 +268,6 @@ report_cts -out_file ${report_dir}/${log_id_str}_${proj_name}.cts.rpt
 report_metrics "${log_id_str}_${proj_name}.cts"
 save_checkpoint ${log_id_str}_${proj_name}.cts
 report_image "${log_id_str}_${proj_name}.cts" true false true
-
 
 ###############################################################################
 # GLOBAL ROUTE                                                                #
@@ -288,6 +309,12 @@ utl::report "Repair setup and hold violations..."
 repair_timing -skip_pin_swap -setup -verbose -repair_tns 100
 repair_timing -skip_pin_swap -hold -hold_margin 0.1 -verbose -repair_tns 100
 
+# === Added: Extra repair after global routing ===
+utl::report "Extra repair after global routing"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1 -verbose
+
 utl::report "GRT incremental..."
 # Run to get modified net by DPL
 global_route -start_incremental -allow_congestion
@@ -304,7 +331,6 @@ estimate_parasitics -global_routing
 report_metrics "${log_id_str}_${proj_name}.grt_repaired"
 save_checkpoint ${log_id_str}_${proj_name}.grt_repaired
 report_image "${log_id_str}_${proj_name}.grt_repaired" true true false true
-
 
 ###############################################################################
 # DETAILED ROUTE                                                              #
@@ -330,43 +356,8 @@ detailed_route -output_drc ${report_dir}/${log_id_str}_${proj_name}_route_drc.rp
                -clean_patches \
                -verbose 1
 
-utl::report "Saving detailed route"
-save_checkpoint ${log_id_str}_${proj_name}.drt
-report_metrics "${log_id_str}_${proj_name}.drt"
-report_image "${log_id_str}_${proj_name}.drt" true false false true
-
-
-###############################################################################
-# FINISHING                                                                   #
-###############################################################################
-incr log_id
-set log_id_str [format "%02d" $log_id]
-utl::report "###############################################################################"
-utl::report "# Step ${log_id_str}: FINISHING"
-utl::report "###############################################################################"
-
-utl::report "Filler placement"
-filler_placement $stdfill
-global_connect
-
-save_checkpoint ${log_id_str}_${proj_name}.final
-report_image "${log_id_str}_${proj_name}.final" true true false true
-estimate_parasitics -global_routing
-report_metrics "${log_id_str}_${proj_name}.final"
-
-utl::report "Write output"
-write_def                      $CROC_DIR/openroad/out/${proj_name}.def
-write_verilog -include_pwr_gnd -remove_cells "$stdfill bondpad*" $CROC_DIR/openroad/out/${proj_name}_lvs.v
-write_verilog                  $CROC_DIR/openroad/out/${proj_name}.v
-write_db                       $CROC_DIR/openroad/out/${proj_name}.odb
-write_sdc                      $CROC_DIR/openroad/out/${proj_name}.sdc
-
-## WARNING: Currently the extract_parasitics command removes metal patches (eg for min area)
-## So if you want to use it, do so at the very end after writing out the def and odb files
-# define_process_corner -ext_model_index 0 X
-# extract_parasitics -ext_model_file IHP_rcx_patterns.rules
-# write_spef out/${proj_name}.spef
-# read_spef  out/${proj_name}.spef; # readback parasitics for OpenSTA
-# report_metrics "${log_id_str}_${proj_name}.extract"
-
-exit
+# === Added: Extra repair after detailed routing ===
+utl::report "Extra repair after detailed routing"
+repair_design -verbose
+repair_timing -setup -skip_pin_swap -verbose
+repair_timing -hold -hold_margin 0.1

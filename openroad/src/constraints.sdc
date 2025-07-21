@@ -11,7 +11,7 @@
 ## Global ##
 ############
 
-source src/instances.tcl
+source $CROC_DIR/openroad/src/instances.tcl
 
 
 #############################
@@ -29,8 +29,8 @@ set_driving_cell [all_inputs] -lib_cell sg13g2_IOPadOut16mA -pin pad
 ##################
 puts "Clocks..."
 
-# We target 80 MHz
-set TCK_SYS 12.5
+# We target 40 MHz
+set TCK_SYS 25.0
 create_clock -name clk_sys -period $TCK_SYS [get_ports clk_i]
 
 set TCK_JTG 20.0
