@@ -361,3 +361,43 @@ utl::report "Extra repair after detailed routing"
 repair_design -verbose
 repair_timing -setup -skip_pin_swap -verbose
 repair_timing -hold -hold_margin 0.1
+
+utl::report "Saving detailed route"
+save_checkpoint ${log_id_str}_${proj_name}.drt
+report_metrics "${log_id_str}_${proj_name}.drt"
+report_image "${log_id_str}_${proj_name}.drt" true false false true
+
+###############################################################################
+# FINISHING                                                                   #
+###############################################################################
+incr log_id
+set log_id_str [format "%02d" $log_id]
+utl::report "###############################################################################"
+utl::report "# Step ${log_id_str}: FINISHING"
+utl::report "###############################################################################"
+
+utl::report "Filler placement"
+filler_placement $stdfill
+global_connect
+
+save_checkpoint ${log_id_str}_${proj_name}.final
+report_image "${log_id_str}_${proj_name}.final" true true false true
+estimate_parasitics -global_routing
+report_metrics "${log_id_str}_${proj_name}.final"
+
+utl::report "Write output"
+write_def                      out/${proj_name}.def
+write_verilog -include_pwr_gnd -remove_cells "$stdfill bondpad*" out/${proj_name}_lvs.v
+write_verilog                  out/${proj_name}.v
+write_db                       out/${proj_name}.odb
+write_sdc                      out/${proj_name}.sdc
+
+## WARNING: Currently the extract_parasitics command removes metal patches (eg for min area)
+## So if you want to use it, do so at the very end after writing out the def and odb files
+# define_process_corner -ext_model_index 0 X
+# extract_parasitics -ext_model_file IHP_rcx_patterns.rules
+# write_spef out/${proj_name}.spef
+# read_spef  out/${proj_name}.spef; # readback parasitics for OpenSTA
+# report_metrics "${log_id_str}_${proj_name}.extract"
+
+exit
