@@ -130,9 +130,9 @@ utl::report "###################################################################
 
 set_thread_count 8
 
-set GPL_ARGS {  -density 0.60 }
+set GPL_ARGS {  -density 0.35 }
 
-set GPL2_ARGS { -density 0.60
+set GPL2_ARGS { -density 0.35
                 -routability_driven
                 -routability_check_overflow 0.30
                 -timing_driven }
