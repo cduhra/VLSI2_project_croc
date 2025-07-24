@@ -117,17 +117,17 @@ module cve2_mac_controller (
     // FlipFlop for state and output registers
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
-            state_q <= IDLE;
-            alu_operator_q <= alu_operator_i;
-            mac_en_2_cycles_q <= 1'b0;
-            mac_mul_en_q <= 1'b0;
-            mac_md_operator_q <= mac_md_operator_i;
+            state_q            <= IDLE;
+            alu_operator_q     <= alu_operator_i;
+            mac_en_2_cycles_q  <= 1'b0;
+            mac_mul_en_q       <= 1'b0;
+            mac_md_operator_q  <= mac_md_operator_i;
         end else begin
-            state_q <= state_d;
-            alu_operator_q <= alu_operator_d;
-            mac_en_2_cycles_q <= mac_en_2_cycles_d;
-            mac_mul_en_q <= mac_mul_en_d;
-            mac_md_operator_q <= mac_md_operator_d;
+            state_q            <= (rst_ni) ? state_d           : state_q;
+            alu_operator_q     <= (rst_ni) ? alu_operator_d    : alu_operator_q;
+            mac_en_2_cycles_q  <= (rst_ni) ? mac_en_2_cycles_d : mac_en_2_cycles_q;
+            mac_mul_en_q       <= (rst_ni) ? mac_mul_en_d      : mac_mul_en_q;
+            mac_md_operator_q  <= (rst_ni) ? mac_md_operator_d : mac_md_operator_q;
         end
     end
 

@@ -130,8 +130,6 @@ module cve2_id_stage #(
   input  logic [31:0]               rf_rdata_a_i,
   output logic [4:0]                rf_raddr_b_o,
   input  logic [31:0]               rf_rdata_b_i,
-  output logic [4:0]                rf_raddr_c_o,
-  input  logic [31:0]               rf_rdata_c_i,
   output logic                      rf_ren_a_o,
   output logic                      rf_ren_b_o,
 
@@ -433,7 +431,7 @@ module cve2_id_stage #(
   ////////////////////
   // MAC controller //
   ////////////////////
-  cve2_mac_controller mac__controller_i (
+  cve2_mac_controller mac_controller_i (
     .clk_i (clk_i),
     .rst_ni (rst_ni),
     .alu_operator_i (alu_operator),
@@ -447,10 +445,6 @@ module cve2_id_stage #(
     .mac_mul_en_comb_o (mac_mul_en_comb_o)
   );
 
-  // always_ff @(posedge clk_i) begin
-  //   // $display("[ID] MAC controller: mac_mul_en_o=%b alu_operator_MAC=%0d md_operator_MAC=%0d mac_en_2_cycles=%b",
-  //   //       mac_mul_en_o, alu_operator_MAC, md_operator_MAC, mac_en_2_cycles);
-  // end
   
   // FlipFlop for backpropagation of the result_ex_i signal
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -585,21 +579,6 @@ module cve2_id_stage #(
   );
  
   
-
-  // Trace alu_operand_b_ex_o assignment
-  // always_ff @(posedge clk_i) begin
-  //   if (mac_en) begin
-  //     $display("[ID] MAC signals: mac_en=%b alu_operator=%0d mult_en=%b multdiv_operator=%0d mult_sel=%b instr_executing=%b ex_valid_i=%b",
-  //       mac_en, alu_operator, mult_en_dec, multdiv_operator, mult_sel_ex_o, instr_executing, ex_valid_i);
-  //   end
-  // end
-
-  // always_comb begin
-  //   if (mac_en_2_cycles) begin
-  //     $display("[ID STAGE] MAC accumulate: alu_operand_b_ex_o = result_ex_i_q = 0x%h, rf_raddr_a_o = rf_waddr_id_MUX = %0d imd_val_q[0]=0x%h alu_operand_b_ex_o=0x%h rd(regfile)=0x%h",
-  //       result_ex_i_q, rf_waddr_id_MUX, imd_val_q[0], alu_operand_b_ex_o, rf_rdata_a_fwd);
-  //   end
-  // end
   // ====================================================
 
   assign multdiv_en_dec   = mult_en_dec | div_en_dec;
@@ -646,22 +625,12 @@ module cve2_id_stage #(
     always_ff @(posedge clk_i or negedge rst_ni) begin
       if (!rst_ni) begin
         mac_acc_saved <= 32'b0;
-      end else if (mac_en && instr_executing) begin
-        // Forward from previous cycle if MAC follows a write to rd
-        if (prev_rf_we_id_o && (prev_rf_waddr_id_o == instr_rdata_i[11:7])) begin
-          mac_acc_saved <= prev_rf_wdata_id_o;
-          // $display("[MAC ACC] Forwarded previous writeback: mac_acc_saved=0x%h (prev_rf_wdata_id_o)", prev_rf_wdata_id_o);
-        end
-        // Forward current cycle writeback if simultaneous
-        else if (rf_we_id_o && (rf_waddr_id_o == instr_rdata_i[11:7])) begin
-          mac_acc_saved <= rf_wdata_id_o;
-          // $display("[MAC ACC] Forwarded current writeback: mac_acc_saved=0x%h (rf_wdata_id_o)", rf_wdata_id_o);
-        end
-        // Otherwise, use register file value
-        else begin
-          mac_acc_saved <= rf_rdata_a_i;
-          //$display("[MAC ACC] Register file: mac_acc_saved=0x%h (rf_rdata_a_i)", rf_rdata_a_i);
-        end
+      end else begin
+        mac_acc_saved <= (mac_en && instr_executing) ? (
+          prev_rf_we_id_o && (prev_rf_waddr_id_o == instr_rdata_i[11:7]) ? prev_rf_wdata_id_o :
+          rf_we_id_o && (rf_waddr_id_o == instr_rdata_i[11:7]) ? rf_wdata_id_o :
+          rf_rdata_a_i
+        ) : mac_acc_saved;
       end
     end
   
@@ -671,8 +640,8 @@ module cve2_id_stage #(
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       mac_rd_saved <= 5'b0;
-    end else if (mac_en && instr_executing) begin
-      mac_rd_saved <= instr_rdata_i[11:7]; // Save rd at start of MAC
+    end else begin
+      mac_rd_saved <= (mac_en && instr_executing) ? instr_rdata_i[11:7] : mac_rd_saved;
     end
   end
   
