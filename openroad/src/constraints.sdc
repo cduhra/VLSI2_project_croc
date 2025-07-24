@@ -11,7 +11,7 @@
 ## Global ##
 ############
 
-source $CROC_DIR/openroad/src/instances.tcl
+source src/instances.tcl
 
 
 #############################

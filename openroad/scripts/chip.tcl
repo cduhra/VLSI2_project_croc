@@ -11,9 +11,9 @@
 
 set currentDir [pwd]
 set CROC_DIR $currentDir
-set report_dir $CROC_DIR/openroad/reports
-set save_dir $CROC_DIR/openroad/save
-set netlist $CROC_DIR/yosys/out/croc_chip_yosys.v
+set report_dir reports
+set save_dir save
+set netlist ../yosys/out/croc_chip_yosys.v
 
 set proj_name "mac_enabled_chip"
 set top_design "croc_chip"
@@ -30,11 +30,11 @@ set time [elapsed_run_time]
 set step_by_step_debug 0
 
 # helper scripts
-source $CROC_DIR/openroad/scripts/reports.tcl
-source $CROC_DIR/openroad/scripts/checkpoint.tcl
+source scripts/reports.tcl
+source scripts/checkpoint.tcl
 
 # initialize technology data
-source $CROC_DIR/openroad/scripts/init_tech.tcl
+source scripts/init_tech.tcl
 
 set log_id 0
 
@@ -53,7 +53,7 @@ read_verilog $netlist
 link_design $top_design
 
 utl::report "Read constraints"
-read_sdc $CROC_DIR/openroad/src/constraints.sdc
+read_sdc src/constraints.sdc
 
 utl::report "Check constraints"
 check_setup -verbose                                      > ${report_dir}/${log_id_str}_${proj_name}_checks.rpt
@@ -76,13 +76,13 @@ initialize_floorplan -die_area "0 0 $chipW $chipH" \
 
 
 utl::report "Connect global nets (power)"
-source $CROC_DIR/openroad/scripts/power_connect.tcl
+source scripts/power_connect.tcl
 
 utl::report "Create Floorplan"
-source $CROC_DIR/openroad/scripts/floorplan.tcl
+source scripts/floorplan.tcl
 
 utl::report "Create Power Grid"
-source $CROC_DIR/openroad/scripts/power_grid.tcl
+source scripts/power_grid.tcl
 save_checkpoint 00_${proj_name}.power_grid
 report_image "00_${proj_name}.power" true
 

@@ -11,7 +11,7 @@
 
 utl::report "Power Grid"
 # ToDo: Check connectivity on left and right power pad cells
-source $CROC_DIR/openroad/scripts/floorplan_util.tcl
+source scripts/floorplan_util.tcl
 
 ##########################################################################
 # Reset

@@ -7,7 +7,7 @@
 # - Jannis Schönleber <janniss@iis.ee.ethz.ch>
 # - Philippe Sauter   <phsauter@iis.ee.ethz.ch>
 
-source $CROC_DIR/openroad/scripts/floorplan_util.tcl
+source scripts/floorplan_util.tcl
 
 ##########################################################################
 # Reset (mark everything as unplaced)
@@ -30,7 +30,7 @@ foreach inst $insts {
 # Pads/IOs 
 ##########################################################################
 utl::report "Create Padring"
-source $CROC_DIR/openroad/src/padring.tcl
+source src/padring.tcl
 
 
 ##########################################################################
@@ -68,7 +68,7 @@ set siteHeight        [ord::dbu_to_microns [[dpl::get_row_site] getHeight]]
 # Paths to the instances of macros
 ##########################################################################
 utl::report "Macro Names"
-source $CROC_DIR/openroad/src/instances.tcl
+source src/instances.tcl
 
 ##########################################################################
 # Placing 
