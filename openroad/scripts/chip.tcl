@@ -342,7 +342,7 @@ utl::report "# Step ${log_id_str}: DETAILED ROUTE"
 utl::report "###############################################################################"
 
 # Requires LEF cell with class 'CORE ANTENNACELL', otherwise you need to give a cell
-repair_antennas -ratio_margin 30 -iterations 5
+repair_antennas -ratio_margin 30 -iterations 10
 # check_antennas
 
 utl::report "Detailed route"

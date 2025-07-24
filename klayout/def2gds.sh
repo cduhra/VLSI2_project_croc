@@ -12,7 +12,7 @@ cd $klayout_dir
 ### project  ###
 ################
 top_design=${TOP_DESIGN:-"croc_chip"}
-def_path=${DEF_PATH:-"$root_dir/openroad/out/croc.def"}
+def_path=${DEF_PATH:-"$root_dir/openroad/out/mac_enabled_chip.def"}
 
 
 ################
@@ -23,8 +23,8 @@ layer="$root_dir/ihp13/pdk/ihp-sg13g2/libs.tech/klayout/tech/sg13g2.lyp"
 
 # create klayout home dir and add pdk to path
 export KLAYOUT_HOME="$klayout_dir/.klayout"
-export KLAYOUT_PATH="$(realpath $root_dir/ihp13/pdk/ihp-sg13g2/libs.tech/klayout):$KLAYOUT_PATH"
-mkdir -p $KLAYOUT_HOME/tech
+# export KLAYOUT_PATH="$(realpath $root_dir/ihp13/pdk/ihp-sg13g2/libs.tech/klayout):$KLAYOUT_PATH"
+# mkdir -p $KLAYOUT_HOME/tech
 
 
 if [[ -d "$root_dir/technology" ]]; then
