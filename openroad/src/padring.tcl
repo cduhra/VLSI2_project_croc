@@ -42,9 +42,11 @@ make_io_sites -horizontal_site sg13g2_ioSite \
 
 set padD    180; # pad depth (edge to core)
 set padW     80; # pad width (beachfront)
-
-set chipH  2235; # left/right (height)
-set chipW  2235; # top/bottom (width)
+# Size of the chip
+# Calculated by 2235.0 - 2 * (70 + 39) = 2017.0
+# 2017.0 is the size of the chip in um
+set chipH  2017; # left/right (height)
+set chipW  2017; # top/bottom (width)
 
 #Edge: LEFT (top to bottom)
 set numPads 16

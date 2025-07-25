@@ -62,8 +62,10 @@ report_checks -format end -no_line_splits                >> ${report_dir}/${log_
 report_checks -format end -no_line_splits                >> ${report_dir}/${log_id_str}_${proj_name}_checks.rpt
 
 # Size of the chip
-set chipW            2235.0
-set chipH            2235.0
+# Calculated by 2235.0 - 2 * (70 + 39) = 2017.0
+# 2017.0 is the size of the chip in um
+set chipW            2017.0
+set chipH            2017.0
 
 # thickness of annular ring for pads (length of a pad)
 set padRing           180.0
@@ -164,11 +166,11 @@ utl::report "Repair setup"
 repair_timing -setup -skip_pin_swap -verbose
 save_checkpoint ${log_id_str}_${proj_name}.gpl1_repaired
 
-# === Added: Extra repair after global placement ===
-utl::report "Extra repair after global placement"
-repair_design -verbose
-repair_timing -setup -skip_pin_swap -verbose
-repair_timing -hold -hold_margin 0.1 -verbose
+# # === Added: Extra repair after global placement ===
+# utl::report "Extra repair after global placement"
+# repair_design -verbose
+# repair_timing -setup -skip_pin_swap -verbose
+# repair_timing -hold -hold_margin 0.1 -verbose
 
 # actual global placement
 utl::report "Global Placement (2)"
@@ -250,11 +252,11 @@ report_metrics "${log_id_str}_${proj_name}.cts_unrepaired"
 utl::report "Repair setup"
 repair_timing -setup -skip_pin_swap -verbose
 
-# === Added: Extra repair after CTS ===
-utl::report "Extra repair after CTS"
-repair_design -verbose
-repair_timing -setup -skip_pin_swap -verbose
-repair_timing -hold -hold_margin 0.1 -verbose
+# # === Added: Extra repair after CTS ===
+# utl::report "Extra repair after CTS"
+# repair_design -verbose
+# repair_timing -setup -skip_pin_swap -verbose
+# repair_timing -hold -hold_margin 0.1 -verbose
 
 # place inserted cells
 utl::report "Detailed placement"
@@ -356,11 +358,11 @@ detailed_route -output_drc ${report_dir}/${log_id_str}_${proj_name}_route_drc.rp
                -clean_patches \
                -verbose 1
 
-# === Added: Extra repair after detailed routing ===
-utl::report "Extra repair after detailed routing"
-repair_design -verbose
-repair_timing -setup -skip_pin_swap -verbose
-repair_timing -hold -hold_margin 0.1
+# # === Added: Extra repair after detailed routing ===
+# utl::report "Extra repair after detailed routing"
+# repair_design -verbose
+# repair_timing -setup -skip_pin_swap -verbose
+# repair_timing -hold -hold_margin 0.1
 
 utl::report "Saving detailed route"
 save_checkpoint ${log_id_str}_${proj_name}.drt
