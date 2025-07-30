@@ -24,7 +24,7 @@ oseda -2025.03 verilator --binary -j 0 \
   -Wno-fatal -Wno-style \
   --timing --autoflush --trace --trace-structs \
   -CFLAGS "-O0" \
-  --top tb_croc_soc -f croc.f
+  --top tb_croc_soc -f ../croc.f
 
 
 # Run the simulation
