@@ -185,7 +185,31 @@ if {[catch { vlog -incr -sv \
     "$ROOT/rtl/register_interface/lowrisc_opentitan/prim_subreg.sv" \
 }]} {return 1}
 
-
+if {[catch { vlog -incr -sv \
+    "+define+TARGET_IHP13" \
+    "+define+TARGET_NETLIST_OPENROAD" \
+    "+define+TARGET_SIMULATION" \
+    "+define+TARGET_VERILATOR" \
+    "+define+TARGET_VSIM" \
+    "+define+SYNTHESIS" \
+    "+define+SIMULATION" \
+    "+incdir+$ROOT/rtl/apb/include" \
+    "+incdir+$ROOT/rtl/register_interface/include" \
+    "$ROOT/rtl/apb_uart/slib_clock_div.sv" \
+    "$ROOT/rtl/apb_uart/slib_counter.sv" \
+    "$ROOT/rtl/apb_uart/slib_edge_detect.sv" \
+    "$ROOT/rtl/apb_uart/slib_fifo.sv" \
+    "$ROOT/rtl/apb_uart/slib_input_filter.sv" \
+    "$ROOT/rtl/apb_uart/slib_input_sync.sv" \
+    "$ROOT/rtl/apb_uart/slib_mv_filter.sv" \
+    "$ROOT/rtl/apb_uart/uart_baudgen.sv" \
+    "$ROOT/rtl/apb_uart/uart_interrupt.sv" \
+    "$ROOT/rtl/apb_uart/uart_receiver.sv" \
+    "$ROOT/rtl/apb_uart/uart_transmitter.sv" \
+    "$ROOT/rtl/apb_uart/apb_uart.sv" \
+    "$ROOT/rtl/apb_uart/apb_uart_wrap.sv" \
+    "$ROOT/rtl/apb_uart/reg_uart_wrap.sv" \
+}]} {return 1}
 
 if {[catch { vlog -incr -sv \
     "+define+TARGET_IHP13" \
@@ -203,7 +227,6 @@ if {[catch { vlog -incr -sv \
     "$ROOT/rtl/cve2/cve2_counter.sv" \
     "$ROOT/rtl/cve2/cve2_csr.sv" \
     "$ROOT/rtl/cve2/cve2_decoder.sv" \
-    "$ROOT/rtl/cve2/cve2_mac_controller.sv" \
     "$ROOT/rtl/cve2/cve2_fetch_fifo.sv" \
     "$ROOT/rtl/cve2/cve2_load_store_unit.sv" \
     "$ROOT/rtl/cve2/cve2_multdiv_fast.sv" \
@@ -238,29 +261,6 @@ if {[catch { vlog -incr -sv \
     "$ROOT/rtl/obi/obi_mux.sv" \
     "$ROOT/rtl/obi/obi_sram_shim.sv" \
     "$ROOT/rtl/obi/obi_xbar.sv" \
-}]} {return 1}
-
-if {[catch { vlog -incr -sv \
-    "+define+TARGET_IHP13" \
-    "+define+TARGET_NETLIST_OPENROAD" \
-    "+define+TARGET_SIMULATION" \
-    "+define+TARGET_VERILATOR" \
-    "+define+TARGET_VSIM" \
-    "+define+SYNTHESIS" \
-    "+define+SIMULATION" \
-    "+incdir+$ROOT/rtl/common_cells/include" \
-    "+incdir+$ROOT/rtl/apb/include" \
-    "+incdir+$ROOT/rtl/register_interface/include" \
-    "$ROOT/rtl/obi_uart/obi_uart_pkg.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_register.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_modem.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_baudgen.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_interrupts.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_rx.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart_tx.sv" \
-    "$ROOT/rtl/obi_uart/obi_uart.sv" \
-    
-    
 }]} {return 1}
 
 if {[catch { vlog -incr -sv \
@@ -358,7 +358,7 @@ if {[catch { vlog -incr -sv \
     "+incdir+$ROOT/rtl/obi/include" \
     "+incdir+$ROOT/rtl/register_interface/include" \
     "$ROOT/ihp13/tc_clk.sv" \
-
+    "$ROOT/ihp13/tc_sram.sv" \
 }]} {return 1}
 
 if {[catch { vlog -incr -sv \
@@ -397,7 +397,6 @@ if {[catch { vlog -incr -sv \
     "$ROOT/rtl/gpio/gpio.sv" \
     "$ROOT/rtl/croc_domain.sv" \
     "$ROOT/rtl/user_domain.sv" \
-    "$ROOT/rtl/user_domain/user_rom.sv" \
     "$ROOT/rtl/croc_soc.sv" \
 }]} {return 1}
 
@@ -428,7 +427,7 @@ if {[catch { vlog -incr -sv \
     "+incdir+$ROOT/rtl/common_cells/include" \
     "+incdir+$ROOT/rtl/obi/include" \
     "+incdir+$ROOT/rtl/register_interface/include" \
-    "$ROOT/openroad/out/mac_enabled_chip.v" \
+    "$ROOT/openroad/out_final/croc.v" \
 }]} {return 1}
 
 if {[catch { vlog -incr -sv \
