@@ -14,18 +14,14 @@ Before you begin, ensure you have the following tools and dependencies installed
 
 Make sure Verilator is available in your PATH and is a recommended version (4.x+).
 
-## Creating croc.f
+## Setup
 
-Before running the simulation, you need to create a file list for Verilator:
+The repository comes with the necessary configuration files for Verilator simulation:
 
-1. In the project root directory, create a file named `croc.f`
-2. Add the following line to `croc.f`:
-   ```
-   rtl/cve2/cve2_mac_controller.sv
-   ```
-3. Further RTL files can be added one per line if needed for your specific design requirements
+- **`croc.flist`** - Contains the complete list of RTL source files in the project root
+- **`run_helloworld.sh`** - Script in the `sw` directory for building and running simulations
 
-**Note:** The `croc.f` file tells Verilator which RTL source files to include in the simulation build. The example above includes the CVE2 MAC controller module as a starting point.
+No additional setup or file creation is required to get started with basic simulations.
 
 ## Running the Software & Simulation
 
@@ -43,7 +39,7 @@ To build the software and launch the Verilator simulation:
 
 This script will:
 - Compile the hello world software for the croc SoC
-- Invoke Verilator to build the simulation binary using the `croc.f` file list from the project root
+- Invoke Verilator to build the simulation binary using the existing file lists
 - Run the simulation with the compiled software
 
 ## Checking Output
@@ -58,12 +54,12 @@ The simulation will terminate automatically when the program completes execution
 
 ## Notes
 
-- **croc.f Updates**: The `croc.f` file must be updated if RTL changes are made, including when source files are added, removed, or renamed
+- **File Lists**: The project includes `croc.flist` in the root directory which contains all necessary RTL source files for simulation
 - **Verilator PATH**: Ensure Verilator is in your PATH and is a recommended version (4.x+). You can verify this with `verilator --version`
 - **Troubleshooting**: For troubleshooting issues:
   - Check the script output and Verilator compilation messages for error details
   - Verify all prerequisite tools are properly installed and accessible
-  - Ensure the `croc.f` file contains valid file paths relative to the project root
+  - Ensure the existing file lists contain valid file paths relative to the project root
   - Review Verilator output for missing dependencies or syntax errors in RTL files
 
-For more comprehensive simulation with the full SoC, you may need to add additional RTL files to `croc.f` based on your specific requirements.
+The repository is already configured with the necessary file lists and scripts for Verilator simulation. No additional configuration files need to be created.
