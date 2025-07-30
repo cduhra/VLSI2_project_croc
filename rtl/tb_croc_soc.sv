@@ -8,8 +8,8 @@
 `define TRACE_WAVE
 
 module tb_croc_soc #(
-    parameter time         ClkPeriod     = 50ns,
-    parameter time         ClkPeriodJtag = 50ns,
+    parameter time         ClkPeriod     = 25ns,
+    parameter time         ClkPeriodJtag = 25ns,
     parameter time         ClkPeriodRef  = 30518ns,
     parameter time         TAppl         = 0.2*ClkPeriod,
     parameter time         TTest         = 0.8*ClkPeriod,
