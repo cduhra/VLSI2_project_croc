@@ -158,22 +158,28 @@ int main() {
     // // ==============END Userrom test==============
 
     // ==============MAC Test==============
-    printf("BEGIN MAC Test\n");
-    uart_write_flush();
+    
 
     // Test the MAC instruction
     int a = 50, b = 23, c = 11;
     int d = 50, e = 23, f = 11;
     int expected;
+    printf("BEGIN Without MAC\n");
+    uart_write_flush();
+    
     uint32_t start = get_mcycle();
     expected = mul(a, b);
     expected = add(expected, c); // expected result is a * b + c
-    uint32_t end = get_mcycle();    
-    printf("Expected result: 0x%x, Cycles without MAC: 0x%x\n", expected, end - start);
+    uint32_t end = get_mcycle();
+    
+        
+    printf("END Without MAC\n, Expected result: 0x%x, Cycles without MAC: 0x%x\n", expected, end - start);
     uart_write_flush();
     int true_res = d * e + f;
     // MAC not returning because of the return loop
     int result;
+    printf("BEGIN With MAC\n");
+    uart_write_flush();
     uint32_t start_mac = get_mcycle();
     // asm volatile ("mv a2, %0" : : "r"(c) : "a2");
     
@@ -183,6 +189,8 @@ int main() {
     // printf("\n");
     // uart_write_flush();
     uint32_t end_mac = get_mcycle();
+    printf("END With MAC\n");
+    uart_write_flush();
     printf("MAC result: 0x%x, expected: 0x%x\n", result, true_res);
     uart_write_flush();
     uint32_t start_nop = get_mcycle();

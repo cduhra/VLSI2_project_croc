@@ -8,8 +8,8 @@
 `define TRACE_WAVE
 
 module tb_croc_soc #(
-    parameter time         ClkPeriod     = 25ns,
-    parameter time         ClkPeriodJtag = 25ns,
+    parameter time         ClkPeriod     = 50ns,
+    parameter time         ClkPeriodJtag = 50ns,
     parameter time         ClkPeriodRef  = 30518ns,
     parameter time         TAppl         = 0.2*ClkPeriod,
     parameter time         TTest         = 0.8*ClkPeriod,
@@ -443,7 +443,8 @@ module tb_croc_soc #(
         $timeformat(-9, 0, "ns", 12); // 1: scale (ns=-9), 2: decimals, 3: suffix, 4: print-field width
         // configure FST (waveform) dump
         `ifdef TRACE_WAVE
-        $dumpfile("croc.fst");
+        // $dumpfile("croc.fst");
+        $dumpfile("croc.vcd");
         $dumpvars(1,i_croc_soc);
         `endif
 
