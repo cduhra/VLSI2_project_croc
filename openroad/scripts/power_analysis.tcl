@@ -42,25 +42,29 @@ report_power -corner tt
 report_power_metrics "statistical"
 
 ####### Stimuli-Based Power Analysis ########
-# set log_id_str [format "%02d" $log_id]
-# utl::report "###############################################################################"
-# utl::report "# Step ${log_id_str}: Stimuli-Based Power Analysis"
-# utl::report "###############################################################################"
+set log_id_str [format "%02d" $log_id]
+utl::report "###############################################################################"
+utl::report "# Step ${log_id_str}: Stimuli-Based Power Analysis"
+utl::report "###############################################################################"
 
 
-# utl::report "Stimuli-Based Power Analysis"
-# # Load design and related files
-# # read_verilog ./out/mac_enabled_chip.v
-# # link_design "croc_chip"
-# read_sdc ./out/mac_enabled_chip.sdc
-# read_spef ./out/mac_enabled_chip.spef
+utl::report "Stimuli-Based Power Analysis"
+# Load design and related files
+# read_verilog ./out/mac_enabled_chip.v
+# link_design "croc_chip"
+read_sdc ./out/mac_enabled_chip.sdc
+read_spef ./out/mac_enabled_chip.spef
 
-# # Load the VCD file and define the simulation scope
-# read_vcd -scope tb_croc_soc/i_croc_soc ../vsim/croc.vcd
+# Load the VCD file and define the simulation scope
+read_vcd -scope tb_croc_soc/i_croc_soc ../vsim/croc.vcd
 
-# # Finally, you can generate the VCD-based power report
-# report_power -corner tt
-# report_power_metrics "stimuli"
+# Finally, you can generate the VCD-based power report
+report_power -corner tt
+report_power_metrics "stimuli full chip"
+
+
+
+
 
 ##### IR Drop #####
 # read_def ./out/mac_enabled_chip.def
