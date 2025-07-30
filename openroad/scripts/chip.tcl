@@ -132,9 +132,9 @@ utl::report "###################################################################
 
 set_thread_count 8
 
-set GPL_ARGS {  -density 0.35 }
+set GPL_ARGS {  -density 0.30 }
 
-set GPL2_ARGS { -density 0.35
+set GPL2_ARGS { -density 0.30
                 -routability_driven
                 -routability_check_overflow 0.30
                 -timing_driven }
@@ -363,6 +363,8 @@ detailed_route -output_drc ${report_dir}/${log_id_str}_${proj_name}_route_drc.rp
 # repair_design -verbose
 # repair_timing -setup -skip_pin_swap -verbose
 # repair_timing -hold -hold_margin 0.1
+# Adding more repair_antennas after detailed route
+
 
 utl::report "Saving detailed route"
 save_checkpoint ${log_id_str}_${proj_name}.drt

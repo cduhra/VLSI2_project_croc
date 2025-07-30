@@ -159,9 +159,9 @@ module cve2_id_stage #(
   logic                             mac_en_2_cycles;
   cve2_pkg::alu_op_e                alu_operator_MAC;
   cve2_pkg::md_op_e                 md_operator_MAC;
-  logic                             rf_raddr_a_MUX;
-  logic                             rf_waddr_id_MUX;
-  logic                             result_ex_i_q;
+  logic                             rf_raddr_a_MUX;   // not used
+  logic                             rf_waddr_id_MUX;  // not used
+  logic                             result_ex_i_q;    // not used
   logic                             mac_mul_en_o;   
   // ==========================================================
 
